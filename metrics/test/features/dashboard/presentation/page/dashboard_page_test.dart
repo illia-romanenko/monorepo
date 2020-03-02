@@ -1,13 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:metrics/features/common/presentation/drawer/widget/metrics_drawer.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/store/theme_store.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme_builder.dart';
-import 'package:metrics/features/dashboard/domain/entities/coverage.dart';
-import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
 import 'package:metrics/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
@@ -160,8 +157,10 @@ class DashboardTestbed extends StatelessWidget {
           Inject<ThemeStore>(() => themeStore ?? ThemeStore()),
         ],
         initState: () {
-          Injector.getAsReactive<ProjectMetricsStore>()
-              .setState((store) => store.getCoverage('projectId'));
+          Injector.getAsReactive<ProjectMetricsStore>().setState(
+            (store) => store.subscribeToProjects(),
+            catchError: true,
+          );
           Injector.getAsReactive<ThemeStore>()
               .setState((store) => store.isDark = false);
         },
@@ -176,31 +175,29 @@ class DashboardTestbed extends StatelessWidget {
 }
 
 class MetricsStoreStub implements ProjectMetricsStore {
+  static final _projectMetrics = ProjectMetrics(
+    projectId: '1',
+    projectName: 'project',
+    coverage: 0.4,
+    stability: 0.7,
+    totalBuildsNumber: 1,
+    averageBuildTime: 1,
+    performanceMetrics: [],
+    buildResultMetrics: [],
+    buildNumberMetrics: [],
+  );
+
   const MetricsStoreStub();
 
   @override
-  Coverage get coverage => const Coverage(percent: 0.3);
+  Stream<List<ProjectMetrics>> get projectsMetrics =>
+      Stream.value([_projectMetrics]);
 
   @override
-  Future<void> getCoverage(String projectId) async {}
+  Future<void> subscribeToProjects() async {}
 
   @override
-  int get averageBuildTime => 20;
-
-  @override
-  Future getBuildMetrics(String projectId) async {}
-
-  @override
-  int get totalBuildNumber => null;
-
-  @override
-  List<Point<int>> get projectBuildNumberMetrics => [];
-
-  @override
-  List<BuildResultBarData> get projectBuildResultMetrics => [];
-
-  @override
-  List<Point<int>> get projectPerformanceMetrics => [];
+  void dispose() {}
 }
 
 class MetricsStoreErrorStub extends MetricsStoreStub {
@@ -209,12 +206,13 @@ class MetricsStoreErrorStub extends MetricsStoreStub {
   const MetricsStoreErrorStub();
 
   @override
-  Future<void> getCoverage(String projectId) async {
+  Stream<List<ProjectMetrics>> get projectsMetrics => throw errorMessage;
+
+  @override
+  Future<void> subscribeToProjects() {
     throw errorMessage;
   }
 
   @override
-  Future getBuildMetrics(String projectId) async {
-    throw errorMessage;
-  }
+  void dispose() {}
 }

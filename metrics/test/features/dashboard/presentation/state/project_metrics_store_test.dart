@@ -1,112 +1,137 @@
+import 'dart:async';
+
 import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
 import 'package:metrics/features/dashboard/domain/entities/build_number_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/build_result_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/coverage.dart';
 import 'package:metrics/features/dashboard/domain/entities/performance_metric.dart';
-import 'package:metrics/features/dashboard/domain/usecases/get_build_metrics.dart';
-import 'package:metrics/features/dashboard/domain/usecases/get_project_coverage.dart';
-import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
+import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/domain/usecases/parameters/build_metrics_loading_param.dart';
+import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
+import 'package:metrics/features/dashboard/domain/usecases/receive_poject_updates.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:test/test.dart';
 
 void main() {
   const projectId = 'projectId';
-  const projectIdParam = ProjectIdParam(projectId: projectId);
-  const GetCoverageTestbed getCoverage = GetCoverageTestbed();
-  const GetBuildMetricsTestbed getBuildMetrics = GetBuildMetricsTestbed();
+  const ReceiveBuildMetricsUpdates receiveBuildMetricsUpdates =
+      ReceiveBuildMetricsUpdatesTestbed();
+  final ReceiveProjectUpdates receiveProjectUpdates =
+      ReceiveProjectUpdatesTestbed();
+
+  const BuildMetricsLoadingParam buildMetricsParams =
+      BuildMetricsLoadingParam(projectId, Duration(days: 5), 3);
+
   BuildMetrics expectedBuildMetrics;
 
   ProjectMetricsStore projectMetricsStore;
 
   setUpAll(() async {
     projectMetricsStore = ProjectMetricsStore(
-      getCoverage,
-      getBuildMetrics,
+      receiveProjectUpdates,
+      receiveBuildMetricsUpdates,
     );
 
-    expectedBuildMetrics = await getBuildMetrics(projectIdParam);
-    await projectMetricsStore.getCoverage(projectId);
-    await projectMetricsStore.getBuildMetrics(projectId);
+    expectedBuildMetrics =
+        await receiveBuildMetricsUpdates(buildMetricsParams).first;
+
+    await projectMetricsStore.subscribeToProjects();
   });
-
-  test(
-    "Creates empty performance, build result and build number metrics from empty BuildMetrics",
-    () async {
-      final getEmptyBuildMetrics = GetEmptyBuildMetricsTestbed();
-
-      final projectMetricsStore = ProjectMetricsStore(
-        getCoverage,
-        getEmptyBuildMetrics,
-      );
-
-      await projectMetricsStore.getBuildMetrics(projectId);
-
-      expect(projectMetricsStore.projectBuildResultMetrics, isEmpty);
-      expect(projectMetricsStore.projectPerformanceMetrics, isEmpty);
-      expect(projectMetricsStore.projectBuildNumberMetrics, isEmpty);
-    },
-  );
-
-  test(
-    "Does not throws an exception when the BuildMetrics is null",
-    () async {
-      final getNullBuildMetrics = GetNullBuildMetricsTestbed();
-      final projectMetricsStore = ProjectMetricsStore(
-        getCoverage,
-        getNullBuildMetrics,
-      );
-
-      await projectMetricsStore.getBuildMetrics(projectId);
-
-      expect(projectMetricsStore.totalBuildNumber, isNull);
-      expect(projectMetricsStore.averageBuildTime, isNull);
-      expect(projectMetricsStore.projectBuildNumberMetrics, isNull);
-      expect(projectMetricsStore.projectBuildResultMetrics, isNull);
-      expect(projectMetricsStore.projectPerformanceMetrics, isNull);
-    },
-  );
 
   test("Throws an assert if one of the use cases is null", () {
     final assertionMatcher = throwsA(const TypeMatcher<AssertionError>());
 
     expect(() => ProjectMetricsStore(null, null), assertionMatcher);
     expect(
-      () => ProjectMetricsStore(getCoverage, null),
+      () => ProjectMetricsStore(null, receiveBuildMetricsUpdates),
       assertionMatcher,
     );
     expect(
-      () => ProjectMetricsStore(null, getBuildMetrics),
+      () => ProjectMetricsStore(receiveProjectUpdates, null),
       assertionMatcher,
     );
   });
 
-  test("Properly loads the coverage data", () async {
-    final expectedCoverage = await getCoverage(projectIdParam);
+  test(
+    "Creates empty ProjectMetrics number metrics from empty BuildMetrics",
+    () async {
+      const receiveEmptyMetrics = ReceiveEmptyBuildMetricsUpdatesTestbed();
 
-    expect(projectMetricsStore.coverage, equals(expectedCoverage));
+      final projectMetricsStore = ProjectMetricsStore(
+        receiveProjectUpdates,
+        receiveEmptyMetrics,
+      );
+
+      await projectMetricsStore.subscribeToProjects();
+
+      final metrics = await projectMetricsStore.projectsMetrics.first;
+      final projectMetrics = metrics.first;
+
+      expect(projectMetrics.buildResultMetrics, isEmpty);
+      expect(projectMetrics.performanceMetrics, isEmpty);
+      expect(projectMetrics.buildNumberMetrics, isEmpty);
+    },
+  );
+
+  test(
+    "Creates ProjectMetrics with null metrics if the BuildMetrics is null",
+    () async {
+      const getNullBuildMetrics = ReceiveNullBuildMetricsUpdatesTestbed();
+      final projectMetricsStore = ProjectMetricsStore(
+        receiveProjectUpdates,
+        getNullBuildMetrics,
+      );
+
+      await projectMetricsStore.subscribeToProjects();
+
+      final metrics = await projectMetricsStore.projectsMetrics.first;
+      final projectMetrics = metrics.first;
+
+      print(projectMetrics);
+
+      expect(projectMetrics.buildResultMetrics, isNull);
+      expect(projectMetrics.performanceMetrics, isNull);
+      expect(projectMetrics.buildNumberMetrics, isNull);
+    },
+  );
+
+  test("Properly loads the coverage data", () async {
+    final expectedCoverage = expectedBuildMetrics.coverage;
+
+    final actualMetrics = await projectMetricsStore.projectsMetrics.first;
+    final actualCoverage = actualMetrics.first.coverage;
+
+    expect(actualCoverage, expectedCoverage);
   });
 
   test("Loads the build number metrics", () async {
     final expectedBuildNumberMetrics = expectedBuildMetrics.buildNumberMetrics;
     final expectedBuildNumberMetric = expectedBuildNumberMetrics.first;
 
-    final actualBuildNumberMetrics =
-        projectMetricsStore.projectBuildNumberMetrics;
-    final actualBuildNumberMetric = actualBuildNumberMetrics.first;
+    final actualProjectMetrics =
+        await projectMetricsStore.projectsMetrics.first;
+    final actualProjectMetric = actualProjectMetrics.first;
 
     expect(
-      projectMetricsStore.totalBuildNumber,
-      expectedBuildMetrics.totalBuildNumber,
+      actualProjectMetric.totalBuildsNumber,
+      expectedBuildMetrics.totalBuildsNumber,
     );
 
-    expect(actualBuildNumberMetrics.length, expectedBuildNumberMetrics.length);
+    expect(
+      actualProjectMetric.buildNumberMetrics.length,
+      expectedBuildNumberMetrics.length,
+    );
+
+    final actualBuildNumberMetrics = actualProjectMetric.buildNumberMetrics;
+    final firstBuildNumberMetric = actualBuildNumberMetrics.first;
 
     expect(
-      actualBuildNumberMetric.x,
+      firstBuildNumberMetric.x,
       expectedBuildNumberMetric.date.millisecondsSinceEpoch,
     );
     expect(
-      actualBuildNumberMetric.y,
+      firstBuildNumberMetric.y,
       expectedBuildNumberMetric.numberOfBuilds,
     );
   });
@@ -115,13 +140,16 @@ void main() {
     final expectedPerformanceMetrics = expectedBuildMetrics.performanceMetrics;
     final expectedPerformanceMetric = expectedPerformanceMetrics.first;
 
-    final performanceMetrics = projectMetricsStore.projectPerformanceMetrics;
+    final actualProjectMetrics =
+        await projectMetricsStore.projectsMetrics.first;
+    final actualProjectMetric = actualProjectMetrics.first;
+    final performanceMetrics = actualProjectMetric.performanceMetrics;
     final performanceMetric = performanceMetrics.first;
 
     expect(performanceMetrics.length, expectedPerformanceMetrics.length);
 
     expect(
-      projectMetricsStore.averageBuildTime,
+      actualProjectMetric.averageBuildTime,
       expectedBuildMetrics.averageBuildTime.inMinutes,
     );
 
@@ -139,7 +167,10 @@ void main() {
     final expectedBuildResultMetrics = expectedBuildMetrics.buildResultMetrics;
     final expectedBuildResultMetric = expectedBuildResultMetrics.first;
 
-    final buildResultMetrics = projectMetricsStore.projectBuildResultMetrics;
+    final actualProjectMetrics =
+        await projectMetricsStore.projectsMetrics.first;
+    final actualProjectMetric = actualProjectMetrics.first;
+    final buildResultMetrics = actualProjectMetric.buildResultMetrics;
     final buildResultMetric = buildResultMetrics.first;
 
     expect(buildResultMetrics.length, expectedBuildResultMetrics.length);
@@ -157,21 +188,85 @@ void main() {
       expectedBuildResultMetric.url,
     );
   });
+
+  test(
+    'Deletes the ProjectMetrics if the project was deleted on server',
+    () async {
+      final projects = ReceiveProjectUpdatesTestbed.testProjects.toList();
+
+      final receiveProjectUpdates =
+          ReceiveProjectUpdatesTestbed(projects: projects);
+
+      final metricsStore = ProjectMetricsStore(
+        receiveProjectUpdates,
+        receiveBuildMetricsUpdates,
+      );
+
+      await metricsStore.subscribeToProjects();
+
+      List<Project> expectedProjects = await receiveProjectUpdates().first;
+      List<ProjectMetrics> actualProjects =
+          await metricsStore.projectsMetrics.first;
+
+      expect(actualProjects.length, expectedProjects.length);
+
+      projects.removeLast();
+
+      expectedProjects = await receiveProjectUpdates().first;
+      actualProjects = await metricsStore.projectsMetrics.first;
+
+      expect(actualProjects.length, expectedProjects.length);
+    },
+  );
+
+  test(
+    'Creates empty ProjectMetrics list when the projects are null',
+    () async {
+      final receiveProjects = ReceiveProjectUpdatesTestbed(projects: null);
+
+      final metricsStore = ProjectMetricsStore(
+        receiveProjects,
+        receiveBuildMetricsUpdates,
+      );
+
+      await metricsStore.subscribeToProjects();
+      final projectMetrics = await metricsStore.projectsMetrics.first;
+
+      expect(projectMetrics, isEmpty);
+    },
+  );
 }
 
-class GetCoverageTestbed implements GetProjectCoverage {
-  static const double _coveragePercent = 0.3;
+class ReceiveProjectUpdatesTestbed implements ReceiveProjectUpdates {
+  static const testProjects = [
+    Project(
+      id: 'id',
+      name: 'name',
+    ),
+    Project(
+      id: 'id2',
+      name: 'name2',
+    ),
+  ];
 
-  const GetCoverageTestbed();
+  final List<Project> _projects;
+  final BehaviorSubject<List<Project>> _projectsSubject = BehaviorSubject();
+
+  ReceiveProjectUpdatesTestbed({List<Project> projects = testProjects})
+      : _projects = projects;
 
   @override
-  Future<Coverage> call(ProjectIdParam params) {
-    return Future.value(const Coverage(percent: _coveragePercent));
+  Stream<List<Project>> call([void _]) {
+    _projectsSubject.add(_projects);
+
+    print('empty stream');
+    return _projectsSubject.stream;
   }
 }
 
-class GetBuildMetricsTestbed implements GetBuildMetrics {
-  static final BuildMetrics _buildMetrics = BuildMetrics(
+class ReceiveBuildMetricsUpdatesTestbed implements ReceiveBuildMetricsUpdates {
+  static final _buildMetrics = BuildMetrics(
+    projectId: 'id',
     performanceMetrics: [
       PerformanceMetric(
         date: DateTime.now(),
@@ -181,7 +276,6 @@ class GetBuildMetricsTestbed implements GetBuildMetrics {
     buildNumberMetrics: [
       BuildNumberMetric(date: DateTime.now(), numberOfBuilds: 1),
     ],
-    averageBuildTime: const Duration(minutes: 3),
     buildResultMetrics: [
       BuildResultMetric(
         date: DateTime.now(),
@@ -189,27 +283,36 @@ class GetBuildMetricsTestbed implements GetBuildMetrics {
         url: 'some url',
       ),
     ],
-    totalBuildNumber: 1,
+    averageBuildTime: const Duration(minutes: 3),
+    totalBuildsNumber: 1,
+    coverage: 0.2,
+    stability: 0.5,
   );
 
-  const GetBuildMetricsTestbed();
+  const ReceiveBuildMetricsUpdatesTestbed();
 
   @override
-  Future<BuildMetrics> call(ProjectIdParam param) {
-    return Future.value(_buildMetrics);
+  Stream<BuildMetrics> call([BuildMetricsLoadingParam params]) {
+    return Stream.value(_buildMetrics);
   }
 }
 
-class GetEmptyBuildMetricsTestbed implements GetBuildMetrics {
+class ReceiveEmptyBuildMetricsUpdatesTestbed
+    implements ReceiveBuildMetricsUpdates {
+  const ReceiveEmptyBuildMetricsUpdatesTestbed();
+
   @override
-  Future<BuildMetrics> call(ProjectIdParam param) {
-    return Future.value(BuildMetrics());
+  Stream<BuildMetrics> call(BuildMetricsLoadingParam params) {
+    return Stream.value(const BuildMetrics());
   }
 }
 
-class GetNullBuildMetricsTestbed implements GetBuildMetrics {
+class ReceiveNullBuildMetricsUpdatesTestbed
+    implements ReceiveBuildMetricsUpdates {
+  const ReceiveNullBuildMetricsUpdatesTestbed();
+
   @override
-  Future<BuildMetrics> call(ProjectIdParam param) {
-    return Future.value(null);
+  Stream<BuildMetrics> call(BuildMetricsLoadingParam params) {
+    return Stream.value(null);
   }
 }

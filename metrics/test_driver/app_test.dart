@@ -23,7 +23,6 @@ void main() {
         'Loads the coverage data and shows the circle percentage widget',
         () async {
           await driver.waitFor(find.text(DashboardStrings.coverage));
-          await driver.waitFor(find.text("20%"));
           await driver.waitFor(find.byType('CirclePercentage'));
         },
       );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/build_results_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
 import 'package:metrics/features/dashboard/domain/entities/build.dart';
-import 'package:metrics/features/dashboard/domain/usecases/get_build_metrics.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/colored_bar.dart';
@@ -17,16 +16,25 @@ class BuildResultBarGraph extends StatelessWidget {
   final List<BuildResultBarData> data;
   final String title;
   final TextStyle titleStyle;
+  final int numberOfBars;
 
   /// Creates the [BuildResultBarGraph] based [data] with the [title].
   ///
   /// The [title] and [data] should not be null.
   /// [titleStyle] the [TextStyle] of the [title] text.
+  /// [numberOfBars] is the number if the bars on graph.
+  /// If the [data] length will be grater than [numberOfBars],
+  /// it will be trimmed to required length.
+  /// If there will be not enough [data] to display [numberOfBars] bars,
+  /// the [PlaceholderBar]s will be added to match the requested [numberOfBars].
+  /// If the [numberOfBars] won't be specified,
+  /// the [data.length] number of bars will be displayed.
   const BuildResultBarGraph({
     Key key,
     @required this.title,
     @required this.data,
     this.titleStyle,
+    this.numberOfBars,
   })  : assert(title != null),
         assert(data != null),
         super(key: key);
@@ -35,8 +43,9 @@ class BuildResultBarGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     final widgetThemeData = MetricsTheme.of(context).buildResultTheme;
     final titleTextStyle = titleStyle ?? widgetThemeData.titleStyle;
-    final missingBarsCount =
-        GetBuildMetrics.maxNumberOfBuildResults - data.length;
+
+    final requiredNumberOfBars = numberOfBars ?? data.length;
+    final missingBarsCount = requiredNumberOfBars - data.length;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

@@ -25,7 +25,7 @@ class DarkMetricsThemeData extends MetricsThemeData {
             backgroundColor: Colors.transparent,
           ),
           buildResultTheme: const BuildResultsThemeData(
-            canceledColor: Colors.grey,
+            canceledColor: ColorConfig.accentColor,
             successfulColor: ColorConfig.primaryColor,
             failedColor: ColorConfig.accentColor,
           ),

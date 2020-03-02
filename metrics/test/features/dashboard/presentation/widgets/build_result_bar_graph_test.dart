@@ -5,7 +5,6 @@ import 'package:metrics/features/common/presentation/metrics_theme/model/build_r
 import 'package:metrics/features/common/presentation/metrics_theme/model/metrics_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
 import 'package:metrics/features/dashboard/domain/entities/build.dart';
-import 'package:metrics/features/dashboard/domain/usecases/get_build_metrics.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/colored_bar.dart';
@@ -76,15 +75,15 @@ void main() {
     (WidgetTester tester) async {
       const primaryColor = Colors.green;
       const errorColor = Colors.red;
-      const cancelColor = Colors.yellow;
 
+      const themeData = BuildResultsThemeData(
+        successfulColor: primaryColor,
+        failedColor: errorColor,
+        canceledColor: errorColor,
+      );
       await tester.pumpWidget(const BuildResultBarGraphTestbed(
         theme: MetricsThemeData(
-          buildResultTheme: BuildResultsThemeData(
-            successfulColor: primaryColor,
-            failedColor: errorColor,
-            canceledColor: cancelColor,
-          ),
+          buildResultTheme: themeData,
         ),
       ));
 
@@ -103,13 +102,13 @@ void main() {
 
         switch (buildResult.result) {
           case BuildResult.successful:
-            expectedBarColor = primaryColor;
+            expectedBarColor = themeData.successfulColor;
             break;
           case BuildResult.canceled:
-            expectedBarColor = cancelColor;
+            expectedBarColor = themeData.canceledColor;
             break;
           case BuildResult.failed:
-            expectedBarColor = errorColor;
+            expectedBarColor = themeData.failedColor;
             break;
         }
 
@@ -121,10 +120,13 @@ void main() {
   testWidgets(
     "Creates placeholder bars if the number of build results is less than the max number of build results",
     (WidgetTester tester) async {
-      await tester.pumpWidget(const BuildResultBarGraphTestbed());
+      final numberOfBars = buildResults.length + 1;
 
-      final missingBuildResultsCount =
-          GetBuildMetrics.maxNumberOfBuildResults - buildResults.length;
+      await tester.pumpWidget(BuildResultBarGraphTestbed(
+        numberOfBars: numberOfBars,
+      ));
+
+      final missingBuildResultsCount = numberOfBars - buildResults.length;
 
       final placeholderBuildBars = tester.widgetList(
         find.byType(PlaceholderBar),
@@ -155,6 +157,7 @@ class BuildResultBarGraphTestbed extends StatelessWidget {
   final TextStyle titleStyle;
   final List<BuildResultBarData> data;
   final MetricsThemeData theme;
+  final int numberOfBars;
 
   const BuildResultBarGraphTestbed({
     Key key,
@@ -162,6 +165,7 @@ class BuildResultBarGraphTestbed extends StatelessWidget {
     this.data = buildResultBarTestData,
     this.titleStyle,
     this.theme = const MetricsThemeData(),
+    this.numberOfBars = 3,
   }) : super(key: key);
 
   @override
@@ -175,6 +179,7 @@ class BuildResultBarGraphTestbed extends StatelessWidget {
               data: data,
               title: title,
               titleStyle: titleStyle,
+              numberOfBars: numberOfBars,
             ),
           ),
         ),
