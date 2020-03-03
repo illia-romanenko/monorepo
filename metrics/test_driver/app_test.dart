@@ -20,6 +20,13 @@ void main() {
       });
 
       test(
+        'Loads the projects and shows the project tiles',
+        () async {
+          await driver.waitFor(find.byType('ProjectTile'));
+        },
+      );
+
+      test(
         'Loads the coverage data and shows the circle percentage widget',
         () async {
           await driver.waitFor(find.text(DashboardStrings.coverage));

@@ -5,7 +5,8 @@ import 'package:metrics/features/dashboard/presentation/strings/dashboard_string
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/circle_percentage.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/coverage_circle_percentage.dart';
-import 'package:metrics/features/dashboard/presentation/widgets/placeholder_builder.dart';
+import 'package:metrics/features/dashboard/presentation/widgets/loading_builder.dart';
+import 'package:metrics/features/dashboard/presentation/widgets/loading_placeholder.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/sparkline_graph.dart';
 
 /// Displays the project name and it's metrics.
@@ -45,9 +46,9 @@ class ProjectTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   Flexible(
-                    child: PlaceholderBuilder(
+                    child: LoadingBuilder(
                       isLoading: projectMetrics.buildResultMetrics == null,
-                      placeholder: _LoadingPlaceholder(),
+                      loadingPlaceholder: LoadingPlaceholder(),
                       builder: (_) => BuildResultBarGraph(
                         data: projectMetrics.buildResultMetrics,
                         title: DashboardStrings.buildTaskName,
@@ -57,9 +58,9 @@ class ProjectTile extends StatelessWidget {
                     ),
                   ),
                   Flexible(
-                    child: PlaceholderBuilder(
+                    child: LoadingBuilder(
                       isLoading: projectMetrics.performanceMetrics == null,
-                      placeholder: _LoadingPlaceholder(),
+                      loadingPlaceholder: LoadingPlaceholder(),
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.performance,
                         data: projectMetrics.performanceMetrics,
@@ -68,9 +69,9 @@ class ProjectTile extends StatelessWidget {
                     ),
                   ),
                   Flexible(
-                    child: PlaceholderBuilder(
+                    child: LoadingBuilder(
                       isLoading: projectMetrics.buildNumberMetrics == null,
-                      placeholder: _LoadingPlaceholder(),
+                      loadingPlaceholder: LoadingPlaceholder(),
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.builds,
                         data: projectMetrics.buildNumberMetrics,
@@ -80,18 +81,22 @@ class ProjectTile extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: PlaceholderBuilder(
+                    child: LoadingBuilder(
                       isLoading: projectMetrics.coverage == null,
-                      placeholder: _LoadingPlaceholder(),
+                      loadingPlaceholder: Flexible(
+                        child: LoadingPlaceholder(),
+                      ),
                       builder: (_) => CirclePercentage(
                         title: DashboardStrings.stability,
                         value: projectMetrics.stability,
                       ),
                     ),
                   ),
-                  PlaceholderBuilder(
+                  LoadingBuilder(
                     isLoading: projectMetrics.coverage == null,
-                    placeholder: _LoadingPlaceholder(),
+                    loadingPlaceholder: Flexible(
+                      child: LoadingPlaceholder(),
+                    ),
                     builder: (_) => CoverageCirclePercentage(
                       value: projectMetrics.coverage,
                     ),
@@ -102,16 +107,6 @@ class ProjectTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Displays the [CircularProgressIndicator] on data loading.
-class _LoadingPlaceholder extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(),
     );
   }
 }

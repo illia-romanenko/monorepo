@@ -3,6 +3,7 @@ import 'package:metrics/features/common/presentation/drawer/widget/metrics_drawe
 import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
+import 'package:metrics/features/dashboard/presentation/widgets/loading_placeholder.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/project_tile.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
@@ -17,15 +18,15 @@ class DashboardPage extends StatelessWidget {
         child: WhenRebuilder<ProjectMetricsStore>(
           models: [Injector.getAsReactive<ProjectMetricsStore>()],
           onError: _buildLoadingErrorPlaceholder,
-          onWaiting: _buildProgressIndicator,
-          onIdle: _buildProgressIndicator,
+          onWaiting: () => LoadingPlaceholder(),
+          onIdle: () => LoadingPlaceholder(),
           onData: (store) {
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: StreamBuilder<List<ProjectMetrics>>(
                 stream: store.projectsMetrics,
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return _buildProgressIndicator();
+                  if (!snapshot.hasData) return LoadingPlaceholder();
 
                   final projects = snapshot.data;
 
@@ -43,12 +44,6 @@ class DashboardPage extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildProgressIndicator() {
-    return const Center(
-      child: CircularProgressIndicator(),
     );
   }
 

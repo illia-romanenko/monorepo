@@ -1,26 +1,26 @@
 import 'package:flutter/cupertino.dart';
 
-/// Displays the [placeholder] widget if the data [isLoading].
-class PlaceholderBuilder extends StatelessWidget {
+/// Displays the [loadingPlaceholder] widget if the data [isLoading].
+class LoadingBuilder extends StatelessWidget {
   final bool isLoading;
   final WidgetBuilder builder;
-  final Widget placeholder;
+  final Widget loadingPlaceholder;
 
-  /// Creates the [PlaceholderBuilder].
+  /// Creates the [LoadingBuilder].
   ///
   /// [isLoading] defines if the data is loading or not.
-  /// [placeholder] the widget that will be shown when the data [isLoading].
+  /// [loadingPlaceholder] the widget that will be shown when the data [isLoading].
   /// [builder] is the [WidgetBuilder] which will be called after data is loaded.
-  const PlaceholderBuilder({
+  const LoadingBuilder({
     Key key,
     this.isLoading,
     this.builder,
-    this.placeholder,
+    this.loadingPlaceholder,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return placeholder;
+    if (isLoading) return loadingPlaceholder;
 
     return builder(context);
   }
