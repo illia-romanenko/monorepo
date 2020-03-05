@@ -6,6 +6,7 @@ import 'package:metrics/features/common/presentation/metrics_theme/model/metrics
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
 import 'package:metrics/features/dashboard/domain/entities/build.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
+import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/colored_bar.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/placeholder_bar.dart';
@@ -133,6 +134,30 @@ void main() {
       );
 
       expect(placeholderBuildBars.length, missingBuildResultsCount);
+    },
+  );
+
+  testWidgets(
+    "Trims the bars data from the begging to match the given number of bars",
+    (WidgetTester tester) async {
+      const numberOfBars = 2;
+
+      await tester.pumpWidget(const BuildResultBarGraphTestbed(
+        numberOfBars: numberOfBars,
+      ));
+
+      final trimmedData =
+          buildResults.sublist(buildResults.length - numberOfBars);
+
+      final barGraphWidget = tester.widget<BarGraph>(find.byWidgetPredicate(
+        (widget) => widget is BarGraph,
+      ));
+
+      final barGraphData = barGraphWidget.data;
+
+      expect(barGraphData.length, numberOfBars);
+
+      expect(barGraphData, equals(trimmedData));
     },
   );
 }

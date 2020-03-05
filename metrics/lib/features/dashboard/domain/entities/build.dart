@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 enum BuildResult { successful, canceled, failed }
 
 /// Represents the build entity.
+@immutable
 class Build extends Equatable {
   final String id;
   final DateTime startedAt;
@@ -32,26 +33,6 @@ class Build extends Equatable {
     this.coverage,
   });
 
-  factory Build.fromJson(Map<String, dynamic> json, String id) {
-    final buildResultValue = json['result'] as int;
-    final durationMilliseconds = json['duration'] as int;
-
-    return Build(
-      id: id,
-      startedAt: (json['startedAt'] as Timestamp).toDate(),
-      result: BuildResult.values[buildResultValue ?? 0],
-      duration: Duration(milliseconds: durationMilliseconds),
-      workflowName: json['workflow'] as String,
-      url: json['url'] as String,
-      coverage: json['coverage'] as double,
-    );
-  }
-
   @override
   List<Object> get props => [startedAt, result, duration, workflowName];
-
-  @override
-  String toString() {
-    return 'Build{id: $id}';
-  }
 }

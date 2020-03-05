@@ -1,8 +1,10 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 
 /// Represents the metrics of the project.
+@immutable
 class ProjectMetrics {
   final String projectId;
   final String projectName;
@@ -16,8 +18,8 @@ class ProjectMetrics {
 
   /// Creates the [ProjectMetrics].
   ///
-  /// [projectId] - id of the project this metrics behaves to.
-  /// [projectName] is the name of the project this metrics behaves to.
+  /// [projectId] - id of the project these metrics belong to.
+  /// [projectName] is the name of the project these metrics belongs to.
   /// [coverage] is the tests code coverage of the project.
   /// [stability] is the percentage of the successful builds to total builds of the project.
   /// [totalBuildsNumber] is the number of builds the metrics are based on.
@@ -25,7 +27,7 @@ class ProjectMetrics {
   /// [performanceMetrics] is metric that represents the duration of the builds.
   /// [buildNumberMetrics] is the metric that represents the number of builds during some period of time.
   /// [buildResultMetrics] is the metric that represents the results of the builds.
-  ProjectMetrics({
+  const ProjectMetrics({
     this.projectId,
     this.projectName,
     this.coverage,
@@ -37,6 +39,7 @@ class ProjectMetrics {
     this.buildResultMetrics,
   });
 
+  /// Creates a copy of this project metrics but with the given fields replaced with the new values.
   ProjectMetrics copyWith({
     String projectId,
     String projectName,
@@ -59,10 +62,5 @@ class ProjectMetrics {
       buildNumberMetrics: buildNumberMetrics ?? this.buildNumberMetrics,
       buildResultMetrics: buildResultMetrics ?? this.buildResultMetrics,
     );
-  }
-
-  @override
-  String toString() {
-    return 'ProjectMetrics{buildNumberMetrics: $buildNumberMetrics}';
   }
 }

@@ -175,7 +175,7 @@ class DashboardTestbed extends StatelessWidget {
 }
 
 class MetricsStoreStub implements ProjectMetricsStore {
-  static final _projectMetrics = ProjectMetrics(
+  static const _projectMetrics = ProjectMetrics(
     projectId: '1',
     projectName: 'project',
     coverage: 0.4,

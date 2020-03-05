@@ -18,15 +18,15 @@ class DashboardPage extends StatelessWidget {
         child: WhenRebuilder<ProjectMetricsStore>(
           models: [Injector.getAsReactive<ProjectMetricsStore>()],
           onError: _buildLoadingErrorPlaceholder,
-          onWaiting: () => LoadingPlaceholder(),
-          onIdle: () => LoadingPlaceholder(),
+          onWaiting: () => const LoadingPlaceholder(),
+          onIdle: () => const LoadingPlaceholder(),
           onData: (store) {
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: StreamBuilder<List<ProjectMetrics>>(
                 stream: store.projectsMetrics,
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return LoadingPlaceholder();
+                  if (!snapshot.hasData) return const LoadingPlaceholder();
 
                   final projects = snapshot.data;
 

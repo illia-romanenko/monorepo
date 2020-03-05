@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:metrics/features/dashboard/domain/entities/build.dart';
 import 'package:metrics/features/dashboard/presentation/model/bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
@@ -9,6 +10,7 @@ import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 /// [result] is the result of the build.
 /// The color of the [BuildResultBar] will be obtained from this value.
 /// [url] is the url of the CI build.
+@immutable
 class BuildResultBarData implements BarData {
   @override
   final int value;

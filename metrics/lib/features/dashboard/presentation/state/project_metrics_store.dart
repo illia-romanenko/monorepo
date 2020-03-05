@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
+import 'package:metrics/features/dashboard/domain/entities/project.dart';
 import 'package:metrics/features/dashboard/domain/usecases/parameters/build_metrics_loading_param.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_poject_updates.dart';
@@ -26,7 +27,7 @@ class ProjectMetricsStore {
 
   /// Creates the project metrics store.
   ///
-  /// The [_getCoverage] and [_getBuildMetrics] use cases should not be null.
+  /// The provided use cases should not be null.
   ProjectMetricsStore(
     this._receiveProjectsUpdates,
     this._receiveBuildMetricsUpdates,
@@ -44,41 +45,47 @@ class ProjectMetricsStore {
     final projectsStream = _receiveProjectsUpdates();
     await _projectsSubscription?.cancel();
 
-    _projectsSubscription = projectsStream.listen((projects) {
-      if (projects == null || projects.isEmpty) {
-        _projectsMetricsSubject.add({});
-        return;
+    _projectsSubscription = projectsStream.listen(_projectsListener);
+  }
+
+  /// Listens to project updates.
+  void _projectsListener(List<Project> projects) {
+    if (projects == null || projects.isEmpty) {
+      _projectsMetricsSubject.add({});
+      return;
+    }
+
+    final projectsMetrics = _projectsMetricsSubject.value ?? {};
+
+    final projectIds = projects.map((project) => project.id);
+    projectsMetrics.removeWhere((projectId, value) {
+      final remove = !projectIds.contains(projectId);
+      if (remove) {
+        _buildMetricsSubscriptions.remove(projectId)?.cancel();
       }
 
-      final projectsMetrics = _projectsMetricsSubject.value ?? {};
+      return remove;
+    });
 
-      final newProjectsIds = projects.map((project) => project.id);
-      projectsMetrics.removeWhere((projectId, value) {
-        final remove = !newProjectsIds.contains(projectId);
-        if (remove) _buildMetricsSubscriptions[projectId]?.cancel();
+    for (final project in projects) {
+      final projectId = project.id;
 
-        return remove;
-      });
+      ProjectMetrics projectMetrics =
+          projectsMetrics[projectId] ?? const ProjectMetrics();
 
-      for (final project in projects) {
-        final projectId = project.id;
-
-        ProjectMetrics projectMetrics =
-            projectsMetrics[projectId] ?? ProjectMetrics();
-
-        // update name in case it was updated on server
+      if (projectMetrics.projectName != project.name) {
         projectMetrics = projectMetrics.copyWith(
           projectName: project.name,
         );
-
-        if (!projectsMetrics.containsKey(projectId)) {
-          _subscribeToBuildMetrics(projectId);
-        }
-        projectsMetrics[projectId] = projectMetrics;
       }
 
-      _projectsMetricsSubject.add(projectsMetrics);
-    });
+      if (!projectsMetrics.containsKey(projectId)) {
+        _subscribeToBuildMetrics(projectId);
+      }
+      projectsMetrics[projectId] = projectMetrics;
+    }
+
+    _projectsMetricsSubject.add(projectsMetrics);
   }
 
   /// Subscribes to project metrics.
@@ -126,7 +133,7 @@ class ProjectMetricsStore {
     _projectsMetricsSubject.add(projectsMetrics);
   }
 
-  /// Creates the [_projectBuildNumberMetrics] from [_buildMetrics].
+  /// Creates the project build number metrics from [metrics].
   List<Point<int>> _getBuildNumberMetrics(BuildMetrics metrics) {
     final buildNumberMetrics = metrics?.buildNumberMetrics ?? [];
 
@@ -142,7 +149,7 @@ class ProjectMetricsStore {
     }).toList();
   }
 
-  /// Creates the [_projectPerformanceMetrics] from [_buildMetrics].
+  /// Creates the project performance metrics from [metrics].
   List<Point<int>> _getPerformanceMetrics(BuildMetrics metrics) {
     final performanceMetrics = metrics?.performanceMetrics ?? [];
 
@@ -158,7 +165,7 @@ class ProjectMetricsStore {
     }).toList();
   }
 
-  /// Creates the [_projectBuildResultMetrics] from [_buildMetrics].
+  /// Creates the project build result metrics from [metrics].
   List<BuildResultBarData> _getBuildResultMetrics(BuildMetrics metrics) {
     final buildResults = metrics?.buildResultMetrics ?? [];
 
@@ -181,5 +188,6 @@ class ProjectMetricsStore {
     for (final subscription in _buildMetricsSubscriptions.values) {
       subscription?.cancel();
     }
+    _buildMetricsSubscriptions.clear();
   }
 }

@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:metrics/features/dashboard/domain/entities/build_number_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/build_result_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/performance_metric.dart';
 
 /// Represents the build metrics entity.
+@immutable
 class BuildMetrics {
   final String projectId;
   final List<BuildNumberMetric> buildNumberMetrics;

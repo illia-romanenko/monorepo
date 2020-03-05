@@ -35,7 +35,7 @@ class ProjectTile extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  projectMetrics.projectName,
+                  projectMetrics.projectName ?? '',
                   style: const TextStyle(fontSize: 22.0),
                 ),
               ),
@@ -48,7 +48,7 @@ class ProjectTile extends StatelessWidget {
                   Flexible(
                     child: LoadingBuilder(
                       isLoading: projectMetrics.buildResultMetrics == null,
-                      loadingPlaceholder: LoadingPlaceholder(),
+                      loadingPlaceholder: const LoadingPlaceholder(),
                       builder: (_) => BuildResultBarGraph(
                         data: projectMetrics.buildResultMetrics,
                         title: DashboardStrings.buildTaskName,
@@ -60,7 +60,7 @@ class ProjectTile extends StatelessWidget {
                   Flexible(
                     child: LoadingBuilder(
                       isLoading: projectMetrics.performanceMetrics == null,
-                      loadingPlaceholder: LoadingPlaceholder(),
+                      loadingPlaceholder: const LoadingPlaceholder(),
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.performance,
                         data: projectMetrics.performanceMetrics,
@@ -71,7 +71,7 @@ class ProjectTile extends StatelessWidget {
                   Flexible(
                     child: LoadingBuilder(
                       isLoading: projectMetrics.buildNumberMetrics == null,
-                      loadingPlaceholder: LoadingPlaceholder(),
+                      loadingPlaceholder: const LoadingPlaceholder(),
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.builds,
                         data: projectMetrics.buildNumberMetrics,
@@ -79,14 +79,14 @@ class ProjectTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: LoadingBuilder(
-                      isLoading: projectMetrics.coverage == null,
-                      loadingPlaceholder: Flexible(
-                        child: LoadingPlaceholder(),
-                      ),
-                      builder: (_) => CirclePercentage(
+                  LoadingBuilder(
+                    isLoading: projectMetrics.coverage == null,
+                    loadingPlaceholder: const Flexible(
+                      child: LoadingPlaceholder(),
+                    ),
+                    builder: (_) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: CirclePercentage(
                         title: DashboardStrings.stability,
                         value: projectMetrics.stability,
                       ),
@@ -94,7 +94,7 @@ class ProjectTile extends StatelessWidget {
                   ),
                   LoadingBuilder(
                     isLoading: projectMetrics.coverage == null,
-                    loadingPlaceholder: Flexible(
+                    loadingPlaceholder: const Flexible(
                       child: LoadingPlaceholder(),
                     ),
                     builder: (_) => CoverageCirclePercentage(

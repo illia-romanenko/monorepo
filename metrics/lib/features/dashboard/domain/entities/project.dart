@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 /// Represents the project entity.
+@immutable
 class Project {
   final String id;
   final String name;
@@ -8,12 +11,4 @@ class Project {
     this.id,
     this.name,
   });
-
-  /// Creates the [Project] using the [json] and it's [id].
-  factory Project.fromJson(Map<String, dynamic> json, String id) {
-    return Project(
-      id: id,
-      name: '${json['name']}',
-    );
-  }
 }

@@ -68,7 +68,11 @@ class ReceiveBuildMetricsUpdates
     int buildResultsCount,
     String projectId,
   ) {
-    if (builds == null || builds.isEmpty) return const BuildMetrics();
+    if (builds == null || builds.isEmpty) {
+      return BuildMetrics(
+        projectId: projectId,
+      );
+    }
 
     final averageBuildTime = _getAverageBuildTime(builds);
     final buildNumberMetrics = _getBuildNumberMetrics(builds);
@@ -95,9 +99,8 @@ class ReceiveBuildMetricsUpdates
 
   /// Calculates the average build time of [builds].
   Duration _getAverageBuildTime(List<Build> builds) {
-    final buildDurations = builds.map((build) => build.duration).toList();
-
-    return buildDurations.reduce((value, element) => value + element) ~/
+    return builds.fold<Duration>(
+            const Duration(), (value, element) => value + element.duration) ~/
         builds.length;
   }
 

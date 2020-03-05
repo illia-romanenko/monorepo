@@ -23,8 +23,8 @@ class BuildResultBarGraph extends StatelessWidget {
   /// The [title] and [data] should not be null.
   /// [titleStyle] the [TextStyle] of the [title] text.
   /// [numberOfBars] is the number if the bars on graph.
-  /// If the [data] length will be grater than [numberOfBars],
-  /// it will be trimmed to required length.
+  /// If the [data] length will be greater than [numberOfBars],
+  /// the last [numberOfBars] of the [data] will be shown.
   /// If there will be not enough [data] to display [numberOfBars] bars,
   /// the [PlaceholderBar]s will be added to match the requested [numberOfBars].
   /// If the [numberOfBars] won't be specified,
@@ -44,8 +44,16 @@ class BuildResultBarGraph extends StatelessWidget {
     final widgetThemeData = MetricsTheme.of(context).buildResultTheme;
     final titleTextStyle = titleStyle ?? widgetThemeData.titleStyle;
 
-    final requiredNumberOfBars = numberOfBars ?? data.length;
-    final missingBarsCount = requiredNumberOfBars - data.length;
+    List<BuildResultBarData> barsData = data;
+    int missingBarsCount = 0;
+
+    if (numberOfBars != null) {
+      if (barsData.length > numberOfBars) {
+        barsData = barsData.sublist(barsData.length - numberOfBars);
+      } else {
+        missingBarsCount = numberOfBars - barsData.length;
+      }
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -81,9 +89,9 @@ class BuildResultBarGraph extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  flex: data.length,
+                  flex: barsData.length,
                   child: BarGraph(
-                    data: data,
+                    data: barsData,
                     graphPadding: EdgeInsets.zero,
                     onBarTap: _onBarTap,
                     barBuilder: (BuildResultBarData data) {
@@ -92,7 +100,9 @@ class BuildResultBarGraph extends StatelessWidget {
                         child: ColoredBar(
                           width: _barWidth,
                           color: _getBuildResultColor(
-                              data.result, widgetThemeData),
+                            data.result,
+                            widgetThemeData,
+                          ),
                           borderRadius: BorderRadius.circular(35.0),
                         ),
                       );
