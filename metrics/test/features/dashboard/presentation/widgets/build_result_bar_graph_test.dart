@@ -102,13 +102,13 @@ void main() {
         Color expectedBarColor;
 
         switch (buildResult.result) {
-          case BuildResult.successful:
+          case Result.successful:
             expectedBarColor = themeData.successfulColor;
             break;
-          case BuildResult.canceled:
+          case Result.canceled:
             expectedBarColor = themeData.canceledColor;
             break;
-          case BuildResult.failed:
+          case Result.failed:
             expectedBarColor = themeData.failedColor;
             break;
         }
@@ -165,15 +165,15 @@ void main() {
 class BuildResultBarGraphTestbed extends StatelessWidget {
   static const buildResultBarTestData = [
     BuildResultBarData(
-      result: BuildResult.successful,
+      result: Result.successful,
       value: 5,
     ),
     BuildResultBarData(
-      result: BuildResult.failed,
+      result: Result.failed,
       value: 2,
     ),
     BuildResultBarData(
-      result: BuildResult.canceled,
+      result: Result.canceled,
       value: 8,
     ),
   ];

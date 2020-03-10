@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
 import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
-import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/circle_percentage.dart';
@@ -10,7 +10,7 @@ import 'package:metrics/features/dashboard/presentation/widgets/loading_placehol
 import 'package:metrics/features/dashboard/presentation/widgets/sparkline_graph.dart';
 
 /// Displays the project name and it's metrics.
-class ProjectTile extends StatelessWidget {
+class ProjectTile extends StatefulWidget {
   final ProjectMetrics projectMetrics;
 
   /// Creates the [ProjectTile].
@@ -19,10 +19,18 @@ class ProjectTile extends StatelessWidget {
   const ProjectTile({
     Key key,
     @required this.projectMetrics,
-  }) : super(key: key);
+  })  : assert(projectMetrics != null),
+        super(key: key);
 
   @override
+  _ProjectTileState createState() => _ProjectTileState();
+}
+
+class _ProjectTileState extends State<ProjectTile>
+    with AutomaticKeepAliveClientMixin {
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Card(
       child: Container(
         height: 150.0,
@@ -35,7 +43,7 @@ class ProjectTile extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  projectMetrics.projectName ?? '',
+                  widget.projectMetrics.projectName ?? '',
                   style: const TextStyle(fontSize: 22.0),
                 ),
               ),
@@ -47,40 +55,43 @@ class ProjectTile extends StatelessWidget {
                 children: <Widget>[
                   Flexible(
                     child: LoadingBuilder(
-                      isLoading: projectMetrics.buildResultMetrics == null,
+                      isLoading:
+                          widget.projectMetrics.buildResultMetrics == null,
                       loadingPlaceholder: const LoadingPlaceholder(),
                       builder: (_) => BuildResultBarGraph(
-                        data: projectMetrics.buildResultMetrics,
+                        data: widget.projectMetrics.buildResultMetrics,
                         title: DashboardStrings.buildTaskName,
                         numberOfBars:
-                            ProjectMetricsStore.defaultNumberOfBuildResults,
+                            ReceiveBuildMetricsUpdates.numberOfBuildResults,
                       ),
                     ),
                   ),
                   Flexible(
                     child: LoadingBuilder(
-                      isLoading: projectMetrics.performanceMetrics == null,
+                      isLoading:
+                          widget.projectMetrics.performanceMetrics == null,
                       loadingPlaceholder: const LoadingPlaceholder(),
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.performance,
-                        data: projectMetrics.performanceMetrics,
-                        value: '${projectMetrics.averageBuildTime}M',
+                        data: widget.projectMetrics.performanceMetrics,
+                        value: '${widget.projectMetrics.averageBuildDuration}M',
                       ),
                     ),
                   ),
                   Flexible(
                     child: LoadingBuilder(
-                      isLoading: projectMetrics.buildNumberMetrics == null,
+                      isLoading:
+                          widget.projectMetrics.buildNumberMetrics == null,
                       loadingPlaceholder: const LoadingPlaceholder(),
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.builds,
-                        data: projectMetrics.buildNumberMetrics,
-                        value: '${projectMetrics.totalBuildsNumber}',
+                        data: widget.projectMetrics.buildNumberMetrics,
+                        value: '${widget.projectMetrics.numberOfBuilds}',
                       ),
                     ),
                   ),
                   LoadingBuilder(
-                    isLoading: projectMetrics.coverage == null,
+                    isLoading: widget.projectMetrics.coverage == null,
                     loadingPlaceholder: const Flexible(
                       child: LoadingPlaceholder(),
                     ),
@@ -88,17 +99,17 @@ class ProjectTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: CirclePercentage(
                         title: DashboardStrings.stability,
-                        value: projectMetrics.stability,
+                        value: widget.projectMetrics.stability,
                       ),
                     ),
                   ),
                   LoadingBuilder(
-                    isLoading: projectMetrics.coverage == null,
+                    isLoading: widget.projectMetrics.coverage == null,
                     loadingPlaceholder: const Flexible(
                       child: LoadingPlaceholder(),
                     ),
                     builder: (_) => CoverageCirclePercentage(
-                      value: projectMetrics.coverage,
+                      value: widget.projectMetrics.coverage,
                     ),
                   ),
                 ],
@@ -109,4 +120,7 @@ class ProjectTile extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

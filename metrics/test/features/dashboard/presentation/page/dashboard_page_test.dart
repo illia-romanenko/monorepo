@@ -19,6 +19,7 @@ void main() {
       (WidgetTester tester) async {
         await tester.pumpWidget(const DashboardTestbed());
         await tester.pumpAndSettle();
+
         expect(
           find.descendant(
               of: find.byType(CirclePercentage),
@@ -28,7 +29,7 @@ void main() {
         expect(
           find.descendant(
               of: find.byType(CirclePercentage),
-              matching: find.text(DashboardStrings.coverage)),
+              matching: find.text(DashboardStrings.stability)),
           findsOneWidget,
         );
       },
@@ -180,8 +181,8 @@ class MetricsStoreStub implements ProjectMetricsStore {
     projectName: 'project',
     coverage: 0.4,
     stability: 0.7,
-    totalBuildsNumber: 1,
-    averageBuildTime: 1,
+    numberOfBuilds: 1,
+    averageBuildDuration: 1,
     performanceMetrics: [],
     buildResultMetrics: [],
     buildNumberMetrics: [],

@@ -2,7 +2,7 @@ import 'package:metrics/features/dashboard/domain/entities/build.dart';
 import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
 import 'package:metrics/features/dashboard/domain/entities/project.dart';
 import 'package:metrics/features/dashboard/domain/repositories/metrics_repository.dart';
-import 'package:metrics/features/dashboard/domain/usecases/parameters/build_metrics_loading_param.dart';
+import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
 import 'package:metrics/util/date_time_util.dart';
 import 'package:test/test.dart';
@@ -12,8 +12,6 @@ void main() {
     const projectId = 'projectId';
     const repository = MetricsRepositoryStubImpl();
     final receiveBuildUpdates = ReceiveBuildMetricsUpdates(repository);
-    const buildLoadingLimit = 5;
-    const buildLoadingPeriod = Duration(days: 4);
 
     List<Build> builds;
     Build lastBuild;
@@ -23,32 +21,19 @@ void main() {
     setUpAll(() async {
       builds = MetricsRepositoryStubImpl.builds;
 
-      buildMetrics = await receiveBuildUpdates(const BuildMetricsLoadingParam(
-        projectId,
-        buildLoadingPeriod,
-        buildLoadingLimit,
-      )).first;
+      buildMetrics =
+          await receiveBuildUpdates(const ProjectIdParam(projectId)).first;
 
       lastBuild = builds.last;
     });
 
-    test('Calculates the average build time and total number of builds', () {
-      final expectedAverageBuildTime = builds
-              .map((build) => build.duration)
-              .reduce((value, element) => value + element) ~/
-          builds.length;
-      final expectedTotalBuildNumber = builds.length;
-
-      expect(buildMetrics.averageBuildTime, expectedAverageBuildTime);
-      expect(buildMetrics.totalBuildsNumber, expectedTotalBuildNumber);
-    });
-
     test("Properly loads the performance metrics", () {
-      final firstPerformanceMetric = buildMetrics.performanceMetrics.first;
+      final performanceMetrics = buildMetrics.performanceMetrics;
+      final firstPerformanceMetric = performanceMetrics.buildsPerformance.first;
 
       expect(
+        performanceMetrics.buildsPerformance.length,
         builds.length,
-        buildMetrics.performanceMetrics.length,
       );
 
       expect(
@@ -62,70 +47,30 @@ void main() {
     });
 
     test("Loads all fields in the build number metrics", () {
-      final buildStartDate = DateTimeUtil.trimToDay(lastBuild.startedAt);
+      final buildStartDate = lastBuild.startedAt.date;
 
-      final numberOfBuilds = builds
-          .where((element) =>
-              DateTimeUtil.trimToDay(element.startedAt) == buildStartDate)
+      final numberOfBuildsPerFirstDate = builds
+          .where((element) => element.startedAt.date == buildStartDate)
           .length;
+      final totalNumberOfBuilds = builds.length;
 
       final buildNumberMetrics = buildMetrics.buildNumberMetrics;
-      final firstBuildMetric = buildNumberMetrics.first;
+      final buildsPerFirstDate = buildNumberMetrics.buildsPerDate.first;
 
-      expect(firstBuildMetric.date, buildStartDate);
-      expect(firstBuildMetric.numberOfBuilds, numberOfBuilds);
+      expect(buildsPerFirstDate.date, buildStartDate);
+      expect(buildsPerFirstDate.numberOfBuilds, numberOfBuildsPerFirstDate);
+      expect(buildNumberMetrics.totalNumberOfBuilds, totalNumberOfBuilds);
     });
 
     test('Properly loads the build result metrics', () {
       final buildResultMetrics = buildMetrics.buildResultMetrics;
 
-      final firstBuildResultMetric = buildResultMetrics.first;
+      final firstBuildResult = buildResultMetrics.buildResults.first;
 
-      expect(firstBuildResultMetric.result, lastBuild.result);
-      expect(firstBuildResultMetric.duration, lastBuild.duration);
-      expect(firstBuildResultMetric.date, lastBuild.startedAt);
-      expect(firstBuildResultMetric.url, lastBuild.url);
-    });
-
-    test(
-      "Provides the build metrics based on builds in a given period",
-      () async {
-        const period = Duration(days: 2);
-        const buildsLoadingCount = 1;
-
-        final buildsInPeriod = builds
-            .where(
-              (build) =>
-                  build.startedAt.isAfter(DateTime.now().subtract(period)),
-            )
-            .toList();
-
-        final loadedBuildMetrics =
-            await receiveBuildUpdates(const BuildMetricsLoadingParam(
-          projectId,
-          period,
-          buildsLoadingCount,
-        )).first;
-
-        expect(loadedBuildMetrics.totalBuildsNumber, buildsInPeriod.length);
-      },
-    );
-
-    test('Provides build metrics based on required number of builds', () async {
-      const period = Duration(hours: 1);
-      const buildsLoadingCount = 3;
-
-      final loadedBuildMetrics =
-          await receiveBuildUpdates(const BuildMetricsLoadingParam(
-        projectId,
-        period,
-        buildsLoadingCount,
-      )).first;
-
-      expect(
-        loadedBuildMetrics.totalBuildsNumber,
-        greaterThanOrEqualTo(buildsLoadingCount),
-      );
+      expect(firstBuildResult.result, lastBuild.result);
+      expect(firstBuildResult.duration, lastBuild.duration);
+      expect(firstBuildResult.date, lastBuild.startedAt);
+      expect(firstBuildResult.url, lastBuild.url);
     });
   });
 }

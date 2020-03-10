@@ -7,7 +7,7 @@ class BuildModel extends Build implements EntityModel {
   const BuildModel({
     String id,
     DateTime startedAt,
-    BuildResult result,
+    Result result,
     Duration duration,
     String workflowName,
     String url,
@@ -30,7 +30,7 @@ class BuildModel extends Build implements EntityModel {
     return BuildModel(
       id: id,
       startedAt: (json['startedAt'] as Timestamp).toDate(),
-      result: BuildResult.values[buildResultValue ?? 0],
+      result: Result.values[buildResultValue ?? 0],
       duration: Duration(milliseconds: durationMilliseconds),
       workflowName: json['workflow'] as String,
       url: json['url'] as String,

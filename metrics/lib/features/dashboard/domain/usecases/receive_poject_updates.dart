@@ -9,7 +9,7 @@ class ReceiveProjectUpdates implements UseCase<Stream<List<Project>>, void> {
   final MetricsRepository _repository;
 
   /// Creates the [ReceiveProjectUpdates] use case with the given [_repository].
-  ReceiveProjectUpdates(this._repository);
+  const ReceiveProjectUpdates(this._repository);
 
   @override
   Stream<List<Project>> call([_]) {

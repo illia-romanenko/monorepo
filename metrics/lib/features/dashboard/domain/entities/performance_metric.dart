@@ -1,16 +1,28 @@
 import 'package:flutter/foundation.dart';
 
-/// Represents the performance of the build.
+/// Represents the build performance metric.
 @immutable
 class PerformanceMetric {
-  final DateTime date;
-  final Duration duration;
+  final List<BuildPerformance> buildsPerformance;
+  final Duration averageBuildDuration;
 
   /// Creates the [PerformanceMetric].
   ///
-  /// [date] is the timestamp of the build started.
-  /// [duration] is the time the build took to finish.
+  /// [buildsPerformance] is the performance of several builds.
+  /// [averageBuildDuration] is the average build duration of all builds in [buildsPerformance].
   const PerformanceMetric({
+    this.buildsPerformance = const [],
+    this.averageBuildDuration = const Duration(),
+  });
+}
+
+/// Represents the [duration] of the build, started at [date].
+@immutable
+class BuildPerformance {
+  final DateTime date;
+  final Duration duration;
+
+  const BuildPerformance({
     this.date,
     this.duration,
   });

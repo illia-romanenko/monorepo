@@ -119,15 +119,15 @@ class BuildResultBarGraph extends StatelessWidget {
 
   /// Selects the color based on [result].
   Color _getBuildResultColor(
-    BuildResult result,
+    Result result,
     BuildResultsThemeData themeData,
   ) {
     switch (result) {
-      case BuildResult.successful:
+      case Result.successful:
         return themeData.successfulColor;
-      case BuildResult.canceled:
+      case Result.canceled:
         return themeData.canceledColor;
-      case BuildResult.failed:
+      case Result.failed:
         return themeData.failedColor;
       default:
         return null;

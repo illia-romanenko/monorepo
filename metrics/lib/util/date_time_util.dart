@@ -1,6 +1,5 @@
-/// Provides util methods to work with [DateTime].
-class DateTimeUtil {
-  /// Trims the date to include only the year, month and day.
-  static DateTime trimToDay(DateTime buildDate) =>
-      DateTime(buildDate.year, buildDate.month, buildDate.day);
+/// Extends the [DateTime] with date getter.
+extension Date on DateTime {
+  /// Creates the [DateTime] with only date included.
+  DateTime get date => DateTime(year, month, day);
 }

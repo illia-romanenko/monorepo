@@ -5,6 +5,17 @@ import 'package:metrics/features/dashboard/presentation/widgets/project_tile.dar
 
 void main() {
   testWidgets(
+    "Can't create the ProjectTile with null projectMetrics",
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const ProjectTileTestbed(
+        projectMetrics: null,
+      ));
+
+      expect(tester.takeException(), isAssertionError);
+    },
+  );
+
+  testWidgets(
     "Displays the project name even if it is very long",
     (WidgetTester tester) async {
       const ProjectMetrics metrics = ProjectMetrics(

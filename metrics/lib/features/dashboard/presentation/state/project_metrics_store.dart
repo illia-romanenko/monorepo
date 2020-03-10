@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
+import 'package:metrics/features/dashboard/domain/entities/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/build_result_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/performance_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/project.dart';
-import 'package:metrics/features/dashboard/domain/usecases/parameters/build_metrics_loading_param.dart';
+import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_poject_updates.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
@@ -14,9 +17,6 @@ import 'package:rxdart/rxdart.dart';
 ///
 /// Stores the [Project]s and its [BuildMetrics].
 class ProjectMetricsStore {
-  static const int defaultNumberOfBuildResults = 14;
-  static const Duration defaultBuildMetricsLoadingPeriod = Duration(days: 7);
-
   final ReceiveProjectUpdates _receiveProjectsUpdates;
   final ReceiveBuildMetricsUpdates _receiveBuildMetricsUpdates;
   final Map<String, StreamSubscription> _buildMetricsSubscriptions = {};
@@ -49,15 +49,15 @@ class ProjectMetricsStore {
   }
 
   /// Listens to project updates.
-  void _projectsListener(List<Project> projects) {
-    if (projects == null || projects.isEmpty) {
+  void _projectsListener(List<Project> newProjects) {
+    if (newProjects == null || newProjects.isEmpty) {
       _projectsMetricsSubject.add({});
       return;
     }
 
     final projectsMetrics = _projectsMetricsSubject.value ?? {};
 
-    final projectIds = projects.map((project) => project.id);
+    final projectIds = newProjects.map((project) => project.id);
     projectsMetrics.removeWhere((projectId, value) {
       final remove = !projectIds.contains(projectId);
       if (remove) {
@@ -67,7 +67,7 @@ class ProjectMetricsStore {
       return remove;
     });
 
-    for (final project in projects) {
+    for (final project in newProjects) {
       final projectId = project.id;
 
       ProjectMetrics projectMetrics =
@@ -91,11 +91,7 @@ class ProjectMetricsStore {
   /// Subscribes to project metrics.
   void _subscribeToBuildMetrics(String projectId) {
     final buildMetricsStream = _receiveBuildMetricsUpdates(
-      BuildMetricsLoadingParam(
-        projectId,
-        defaultBuildMetricsLoadingPeriod,
-        defaultNumberOfBuildResults,
-      ),
+      ProjectIdParam(projectId),
     );
 
     // We are storing subscriptions to map to cancel them later,
@@ -108,7 +104,7 @@ class ProjectMetricsStore {
     _buildMetricsSubscriptions[projectId] = metricsSubscription;
   }
 
-  /// Create project metrics form build metrics.
+  /// Create project metrics form [BuildMetrics].
   void _createBuildMetrics(BuildMetrics buildMetrics, String projectId) {
     final projectsMetrics = _projectsMetricsSubject.value;
 
@@ -116,16 +112,25 @@ class ProjectMetricsStore {
 
     if (projectMetrics == null || buildMetrics == null) return;
 
-    final performanceMetrics = _getPerformanceMetrics(buildMetrics);
-    final buildNumberMetrics = _getBuildNumberMetrics(buildMetrics);
-    final buildResultMetrics = _getBuildResultMetrics(buildMetrics);
+    final performanceMetrics = _getPerformanceMetrics(
+      buildMetrics.performanceMetrics,
+    );
+    final buildNumberMetrics = _getBuildNumberMetrics(
+      buildMetrics.buildNumberMetrics,
+    );
+    final buildResultMetrics = _getBuildResultMetrics(
+      buildMetrics.buildResultMetrics,
+    );
+    final averageBuildDuration =
+        buildMetrics.performanceMetrics.averageBuildDuration.inMinutes;
+    final numberOfBuilds = buildMetrics.buildNumberMetrics.totalNumberOfBuilds;
 
     projectsMetrics[projectId] = projectMetrics.copyWith(
       performanceMetrics: performanceMetrics,
       buildNumberMetrics: buildNumberMetrics,
       buildResultMetrics: buildResultMetrics,
-      totalBuildsNumber: buildMetrics.totalBuildsNumber,
-      averageBuildTime: buildMetrics.averageBuildTime.inMinutes,
+      numberOfBuilds: numberOfBuilds,
+      averageBuildDuration: averageBuildDuration,
       coverage: buildMetrics.coverage,
       stability: buildMetrics.stability,
     );
@@ -133,25 +138,27 @@ class ProjectMetricsStore {
     _projectsMetricsSubject.add(projectsMetrics);
   }
 
-  /// Creates the project build number metrics from [metrics].
-  List<Point<int>> _getBuildNumberMetrics(BuildMetrics metrics) {
-    final buildNumberMetrics = metrics?.buildNumberMetrics ?? [];
+  /// Creates the project build number metrics from [BuildNumberMetric].
+  List<Point<int>> _getBuildNumberMetrics(BuildNumberMetric metric) {
+    final buildNumberMetrics = metric?.buildsPerDate ?? [];
 
     if (buildNumberMetrics.isEmpty) {
       return [];
     }
 
-    return buildNumberMetrics.map((metric) {
+    final buildNumberPoints = buildNumberMetrics.map((metric) {
       return Point(
         metric.date.millisecondsSinceEpoch,
         metric.numberOfBuilds,
       );
     }).toList();
+
+    return buildNumberPoints;
   }
 
-  /// Creates the project performance metrics from [metrics].
-  List<Point<int>> _getPerformanceMetrics(BuildMetrics metrics) {
-    final performanceMetrics = metrics?.performanceMetrics ?? [];
+  /// Creates the project performance metrics from [PerformanceMetric].
+  List<Point<int>> _getPerformanceMetrics(PerformanceMetric metric) {
+    final performanceMetrics = metric?.buildsPerformance ?? [];
 
     if (performanceMetrics.isEmpty) {
       return [];
@@ -165,9 +172,9 @@ class ProjectMetricsStore {
     }).toList();
   }
 
-  /// Creates the project build result metrics from [metrics].
-  List<BuildResultBarData> _getBuildResultMetrics(BuildMetrics metrics) {
-    final buildResults = metrics?.buildResultMetrics ?? [];
+  /// Creates the project build result metrics from [BuildResultsMetric].
+  List<BuildResultBarData> _getBuildResultMetrics(BuildResultsMetric metrics) {
+    final buildResults = metrics?.buildResults ?? [];
 
     if (buildResults.isEmpty) {
       return [];

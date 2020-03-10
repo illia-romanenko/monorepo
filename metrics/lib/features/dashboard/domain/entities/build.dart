@@ -1,14 +1,14 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
-enum BuildResult { successful, canceled, failed }
+enum Result { successful, canceled, failed }
 
 /// Represents the build entity.
 @immutable
 class Build extends Equatable {
   final String id;
   final DateTime startedAt;
-  final BuildResult result;
+  final Result result;
   final Duration duration;
   final String workflowName;
   final String url;
