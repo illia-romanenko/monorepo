@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/project_tile.dart';
 
 void main() {
@@ -18,7 +18,7 @@ void main() {
   testWidgets(
     "Displays the project name even if it is very long",
     (WidgetTester tester) async {
-      const ProjectMetrics metrics = ProjectMetrics(
+      const ProjectMetricsData metrics = ProjectMetricsData(
         projectName:
             'Some very long name to display that may overflow on some screens but should be displayed properly. Also, this project name has a description that placed to the project name, but we still can display it properly with any overflows.',
       );
@@ -34,7 +34,7 @@ void main() {
   testWidgets(
     "Displays the ProjectMetrics even when the project nam is null",
     (WidgetTester tester) async {
-      const metrics = ProjectMetrics();
+      const metrics = ProjectMetricsData();
 
       await tester.pumpWidget(const ProjectTileTestbed(
         projectMetrics: metrics,
@@ -46,10 +46,10 @@ void main() {
 }
 
 class ProjectTileTestbed extends StatelessWidget {
-  static const ProjectMetrics testProjectMetrics = ProjectMetrics(
+  static const ProjectMetricsData testProjectMetrics = ProjectMetricsData(
     projectName: 'Test project name',
   );
-  final ProjectMetrics projectMetrics;
+  final ProjectMetricsData projectMetrics;
 
   const ProjectTileTestbed({
     Key key,

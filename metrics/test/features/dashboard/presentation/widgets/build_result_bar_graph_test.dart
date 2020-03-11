@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/build_results_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/metrics_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
@@ -102,13 +102,13 @@ void main() {
         Color expectedBarColor;
 
         switch (buildResult.result) {
-          case Result.successful:
+          case BuildStatus.successful:
             expectedBarColor = themeData.successfulColor;
             break;
-          case Result.canceled:
+          case BuildStatus.cancelled:
             expectedBarColor = themeData.canceledColor;
             break;
-          case Result.failed:
+          case BuildStatus.failed:
             expectedBarColor = themeData.failedColor;
             break;
         }
@@ -165,15 +165,15 @@ void main() {
 class BuildResultBarGraphTestbed extends StatelessWidget {
   static const buildResultBarTestData = [
     BuildResultBarData(
-      result: Result.successful,
+      result: BuildStatus.successful,
       value: 5,
     ),
     BuildResultBarData(
-      result: Result.failed,
+      result: BuildStatus.failed,
       value: 2,
     ),
     BuildResultBarData(
-      result: Result.canceled,
+      result: BuildStatus.cancelled,
       value: 8,
     ),
   ];

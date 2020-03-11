@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:metrics/features/common/presentation/drawer/widget/metrics_drawer.dart';
-import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics_data.dart';
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/loading_placeholder.dart';
@@ -23,7 +23,7 @@ class DashboardPage extends StatelessWidget {
           onData: (store) {
             return Padding(
               padding: const EdgeInsets.all(8.0),
-              child: StreamBuilder<List<ProjectMetrics>>(
+              child: StreamBuilder<List<ProjectMetricsData>>(
                 stream: store.projectsMetrics,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const LoadingPlaceholder();

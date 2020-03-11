@@ -1,5 +1,5 @@
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
-import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
 
 /// Base class for metrics repositories.
 ///

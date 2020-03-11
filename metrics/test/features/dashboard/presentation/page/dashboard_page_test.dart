@@ -4,7 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:metrics/features/common/presentation/drawer/widget/metrics_drawer.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/store/theme_store.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme_builder.dart';
-import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics_data.dart';
 import 'package:metrics/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
@@ -176,13 +177,13 @@ class DashboardTestbed extends StatelessWidget {
 }
 
 class MetricsStoreStub implements ProjectMetricsStore {
-  static const _projectMetrics = ProjectMetrics(
+  static const _projectMetrics = ProjectMetricsData(
     projectId: '1',
     projectName: 'project',
-    coverage: 0.4,
-    stability: 0.7,
+    coverage: Percent(0.4),
+    stability: Percent(0.7),
     numberOfBuilds: 1,
-    averageBuildDuration: 1,
+    averageBuildDurationInMinutes: 1,
     performanceMetrics: [],
     buildResultMetrics: [],
     buildNumberMetrics: [],
@@ -191,7 +192,7 @@ class MetricsStoreStub implements ProjectMetricsStore {
   const MetricsStoreStub();
 
   @override
-  Stream<List<ProjectMetrics>> get projectsMetrics =>
+  Stream<List<ProjectMetricsData>> get projectsMetrics =>
       Stream.value([_projectMetrics]);
 
   @override
@@ -207,7 +208,7 @@ class MetricsStoreErrorStub extends MetricsStoreStub {
   const MetricsStoreErrorStub();
 
   @override
-  Stream<List<ProjectMetrics>> get projectsMetrics => throw errorMessage;
+  Stream<List<ProjectMetricsData>> get projectsMetrics => throw errorMessage;
 
   @override
   Future<void> subscribeToProjects() {

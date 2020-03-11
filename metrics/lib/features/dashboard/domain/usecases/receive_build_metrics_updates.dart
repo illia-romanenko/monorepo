@@ -1,17 +1,19 @@
 import 'package:metrics/core/usecases/usecase.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_number_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_result_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/performance_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/collections/date_time_set.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_result_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/performance_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/project_metrics.dart';
 import 'package:metrics/features/dashboard/domain/repositories/metrics_repository.dart';
 import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
-import 'package:metrics/util/date_time_util.dart';
+import 'package:metrics/util/date.dart';
 import 'package:rxdart/rxdart.dart';
 
-/// Provides an ability to get the [BuildMetrics] updates.
+/// Provides an ability to get the [ProjectMetrics] updates.
 class ReceiveBuildMetricsUpdates
-    implements UseCase<Stream<BuildMetrics>, ProjectIdParam> {
+    implements UseCase<Stream<ProjectMetrics>, ProjectIdParam> {
   static const int numberOfBuildResults = 14;
   static const Duration defaultBuildMetricsLoadingPeriod = Duration(days: 7);
   static const Duration averageBuildDurationCalculationPeriod =
@@ -23,7 +25,7 @@ class ReceiveBuildMetricsUpdates
   ReceiveBuildMetricsUpdates(this._repository);
 
   @override
-  Stream<BuildMetrics> call(ProjectIdParam params) {
+  Stream<ProjectMetrics> call(ProjectIdParam params) {
     final projectId = params.projectId;
 
     final lastBuildsStream = _repository.latestProjectBuildsStream(
@@ -66,13 +68,13 @@ class ReceiveBuildMetricsUpdates
     return builds;
   }
 
-  /// Creates the [BuildMetrics] from the list of [Build]s.
-  BuildMetrics _mapToBuildMetrics(
+  /// Creates the [ProjectMetrics] from the list of [Build]s.
+  ProjectMetrics _mapToBuildMetrics(
     List<Build> builds,
     String projectId,
   ) {
     if (builds == null || builds.isEmpty) {
-      return BuildMetrics(
+      return ProjectMetrics(
         projectId: projectId,
       );
     }
@@ -82,7 +84,7 @@ class ReceiveBuildMetricsUpdates
     final performanceMetrics = _getPerformanceMetrics(builds);
     final stability = _getStability(builds);
 
-    return BuildMetrics(
+    return ProjectMetrics(
       projectId: projectId,
       buildNumberMetrics: buildNumberMetrics,
       performanceMetrics: performanceMetrics,
@@ -102,21 +104,23 @@ class ReceiveBuildMetricsUpdates
       defaultBuildMetricsLoadingPeriod,
     );
 
-    if (buildsInPeriod.isEmpty) return const PerformanceMetric();
+    final buildPerformanceSet = DateTimeSet<BuildPerformance>();
 
-    final buildPerformances = buildsInPeriod
-        .where((element) => element.startedAt
-            .isAfter(DateTime.now().subtract(defaultBuildMetricsLoadingPeriod)))
-        .map(
-          (build) => BuildPerformance(
-            duration: build.duration,
-            date: build.startedAt,
-          ),
-        )
-        .toList();
+    if (buildsInPeriod.isEmpty) {
+      return PerformanceMetric(
+        buildsPerformance: buildPerformanceSet,
+      );
+    }
+
+    for (final build in buildsInPeriod) {
+      buildPerformanceSet.add(BuildPerformance(
+        duration: build.duration,
+        date: build.startedAt,
+      ));
+    }
 
     return PerformanceMetric(
-      buildsPerformance: buildPerformances,
+      buildsPerformance: buildPerformanceSet,
       averageBuildDuration: averageBuildTime,
     );
   }
@@ -144,8 +148,12 @@ class ReceiveBuildMetricsUpdates
       defaultBuildMetricsLoadingPeriod,
     );
 
+    final buildsOnDateSet = DateTimeSet<BuildsOnDate>();
+
     if (buildsInPeriod.isEmpty) {
-      return const BuildNumberMetric();
+      return BuildNumberMetric(
+        buildsOnDateSet: buildsOnDateSet,
+      );
     }
 
     for (final build in buildsInPeriod) {
@@ -158,22 +166,22 @@ class ReceiveBuildMetricsUpdates
       }
     }
 
-    final buildsPerDate = buildNumberMap.entries.map((entry) {
-      return BuildsPerDate(
+    for (final entry in buildNumberMap.entries) {
+      buildsOnDateSet.add(BuildsOnDate(
         date: entry.key,
         numberOfBuilds: entry.value,
-      );
-    }).toList();
+      ));
+    }
 
     return BuildNumberMetric(
-      buildsPerDate: buildsPerDate,
+      buildsOnDateSet: buildsOnDateSet,
       totalNumberOfBuilds: buildsInPeriod.length,
     );
   }
 
-  /// Creates the [BuildResultsMetric] from the list of [builds].
-  BuildResultsMetric _getBuildResultMetrics(List<Build> builds) {
-    if (builds.isEmpty) return const BuildResultsMetric();
+  /// Creates the [BuildResultMetric] from the list of [builds].
+  BuildResultMetric _getBuildResultMetrics(List<Build> builds) {
+    if (builds.isEmpty) return const BuildResultMetric();
 
     List<Build> latestBuilds = builds;
 
@@ -192,23 +200,23 @@ class ReceiveBuildMetricsUpdates
       );
     }).toList();
 
-    return BuildResultsMetric(buildResults: buildResults);
+    return BuildResultMetric(buildResults: buildResults);
   }
 
   /// Calculates the stability metric from list of [builds].
-  double _getStability(List<Build> builds) {
+  Percent _getStability(List<Build> builds) {
     final buildsInPeriod = _getBuildsInPeriod(
       builds,
       defaultBuildMetricsLoadingPeriod,
     );
 
-    if (buildsInPeriod.isEmpty) return 0.0;
+    if (buildsInPeriod.isEmpty) return const Percent(0.0);
 
     final successfulBuilds = buildsInPeriod.where(
-      (build) => build.result == Result.successful,
+      (build) => build.result == BuildStatus.successful,
     );
 
-    return successfulBuilds.length / buildsInPeriod.length;
+    return Percent(successfulBuilds.length / buildsInPeriod.length);
   }
 
   /// Gets all builds in [period] from given [builds].

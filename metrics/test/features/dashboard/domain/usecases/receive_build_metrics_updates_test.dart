@@ -1,10 +1,10 @@
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
-import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/project_metrics.dart';
 import 'package:metrics/features/dashboard/domain/repositories/metrics_repository.dart';
 import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
-import 'package:metrics/util/date_time_util.dart';
+import 'package:metrics/util/date.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,7 +16,7 @@ void main() {
     List<Build> builds;
     Build lastBuild;
 
-    BuildMetrics buildMetrics;
+    ProjectMetrics buildMetrics;
 
     setUpAll(() async {
       builds = MetricsRepositoryStubImpl.builds;
@@ -55,7 +55,7 @@ void main() {
       final totalNumberOfBuilds = builds.length;
 
       final buildNumberMetrics = buildMetrics.buildNumberMetrics;
-      final buildsPerFirstDate = buildNumberMetrics.buildsPerDate.first;
+      final buildsPerFirstDate = buildNumberMetrics.buildsOnDateSet.first;
 
       expect(buildsPerFirstDate.date, buildStartDate);
       expect(buildsPerFirstDate.numberOfBuilds, numberOfBuildsPerFirstDate);

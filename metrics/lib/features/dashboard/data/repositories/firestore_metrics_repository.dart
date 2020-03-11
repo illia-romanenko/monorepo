@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:metrics/features/dashboard/data/model/build_model.dart';
-import 'package:metrics/features/dashboard/data/model/project_model.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
-import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/data/model/build_data.dart';
+import 'package:metrics/features/dashboard/data/model/project_data.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
 import 'package:metrics/features/dashboard/domain/repositories/metrics_repository.dart';
 
 /// Loads data from [Firestore].
@@ -13,7 +13,7 @@ class FirestoreMetricsRepository implements MetricsRepository {
   Stream<List<Project>> projectsStream() {
     return _firestore.collection('projects').orderBy('name').snapshots().map(
         (snapshot) => snapshot.documents
-            .map((doc) => ProjectModel.fromJson(doc.data, doc.documentID))
+            .map((doc) => ProjectData.fromJson(doc.data, doc.documentID))
             .toList());
   }
 
@@ -26,7 +26,7 @@ class FirestoreMetricsRepository implements MetricsRepository {
         .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.documents
-            .map((doc) => BuildModel.fromJson(doc.data, doc.documentID))
+            .map((doc) => BuildData.fromJson(doc.data, doc.documentID))
             .toList());
   }
 
@@ -42,7 +42,7 @@ class FirestoreMetricsRepository implements MetricsRepository {
         .where('startedAt', isGreaterThanOrEqualTo: from)
         .snapshots()
         .map((snapshot) => snapshot.documents
-            .map((doc) => BuildModel.fromJson(doc.data, doc.documentID))
+            .map((doc) => BuildData.fromJson(doc.data, doc.documentID))
             .toList());
   }
 }

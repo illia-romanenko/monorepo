@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/build_results_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/colored_bar.dart';
@@ -28,7 +28,7 @@ class BuildResultBarGraph extends StatelessWidget {
   /// If there will be not enough [data] to display [numberOfBars] bars,
   /// the [PlaceholderBar]s will be added to match the requested [numberOfBars].
   /// If the [numberOfBars] won't be specified,
-  /// the [data.length] number of bars will be displayed.
+  /// all bars from [data] will be displayed.
   const BuildResultBarGraph({
     Key key,
     @required this.title,
@@ -119,15 +119,15 @@ class BuildResultBarGraph extends StatelessWidget {
 
   /// Selects the color based on [result].
   Color _getBuildResultColor(
-    Result result,
+    BuildStatus result,
     BuildResultsThemeData themeData,
   ) {
     switch (result) {
-      case Result.successful:
+      case BuildStatus.successful:
         return themeData.successfulColor;
-      case Result.canceled:
+      case BuildStatus.cancelled:
         return themeData.canceledColor;
-      case Result.failed:
+      case BuildStatus.failed:
         return themeData.failedColor;
       default:
         return null;

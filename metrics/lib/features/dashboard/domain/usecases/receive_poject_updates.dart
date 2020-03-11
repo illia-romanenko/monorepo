@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:metrics/core/usecases/usecase.dart';
-import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
 import 'package:metrics/features/dashboard/domain/repositories/metrics_repository.dart';
 
 /// Provides an the ability to receive [Project]s updates.

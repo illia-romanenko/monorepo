@@ -1,17 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:metrics/features/dashboard/data/model/entity_model.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
+import 'package:metrics/features/dashboard/data/model/data_model.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 
-/// [EntityModel] that represents the [Build] entity.
-class BuildModel extends Build implements EntityModel {
-  const BuildModel({
+/// [DataModel] that represents the [Build] entity.
+class BuildData extends Build implements DataModel {
+  const BuildData({
     String id,
     DateTime startedAt,
-    Result result,
+    BuildStatus result,
     Duration duration,
     String workflowName,
     String url,
-    double coverage,
+    Percent coverage,
   }) : super(
           id: id,
           startedAt: startedAt,
@@ -22,19 +23,19 @@ class BuildModel extends Build implements EntityModel {
           coverage: coverage,
         );
 
-  /// Creates the [BuildModel] from the [json] and it's [id].
-  factory BuildModel.fromJson(Map<String, dynamic> json, String id) {
+  /// Creates the [BuildData] from the [json] and it's [id].
+  factory BuildData.fromJson(Map<String, dynamic> json, String id) {
     final buildResultValue = json['result'] as int;
     final durationMilliseconds = json['duration'] as int;
 
-    return BuildModel(
+    return BuildData(
       id: id,
       startedAt: (json['startedAt'] as Timestamp).toDate(),
-      result: Result.values[buildResultValue ?? 0],
+      result: BuildStatus.values[buildResultValue ?? 0],
       duration: Duration(milliseconds: durationMilliseconds),
       workflowName: json['workflow'] as String,
       url: json['url'] as String,
-      coverage: json['coverage'] as double,
+      coverage: Percent(json['coverage'] as double),
     );
   }
 
@@ -46,7 +47,7 @@ class BuildModel extends Build implements EntityModel {
       'duration': duration.inMilliseconds,
       'workflowName': workflowName,
       'url': url,
-      'coverage': coverage,
+      'coverage': coverage.value,
     };
   }
 }

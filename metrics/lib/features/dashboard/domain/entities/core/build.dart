@@ -1,18 +1,19 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 
-enum Result { successful, canceled, failed }
+enum BuildStatus { successful, cancelled, failed }
 
 /// Represents the build entity.
 @immutable
 class Build extends Equatable {
   final String id;
   final DateTime startedAt;
-  final Result result;
+  final BuildStatus result;
   final Duration duration;
   final String workflowName;
   final String url;
-  final double coverage;
+  final Percent coverage;
 
   /// Creates the [Build].
   ///

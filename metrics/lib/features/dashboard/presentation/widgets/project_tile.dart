@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
-import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics_data.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/circle_percentage.dart';
@@ -11,7 +11,7 @@ import 'package:metrics/features/dashboard/presentation/widgets/sparkline_graph.
 
 /// Displays the project name and it's metrics.
 class ProjectTile extends StatefulWidget {
-  final ProjectMetrics projectMetrics;
+  final ProjectMetricsData projectMetrics;
 
   /// Creates the [ProjectTile].
   ///
@@ -74,7 +74,8 @@ class _ProjectTileState extends State<ProjectTile>
                       builder: (_) => SparklineGraph(
                         title: DashboardStrings.performance,
                         data: widget.projectMetrics.performanceMetrics,
-                        value: '${widget.projectMetrics.averageBuildDuration}M',
+                        value:
+                            '${widget.projectMetrics.averageBuildDurationInMinutes}M',
                       ),
                     ),
                   ),
@@ -99,7 +100,7 @@ class _ProjectTileState extends State<ProjectTile>
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: CirclePercentage(
                         title: DashboardStrings.stability,
-                        value: widget.projectMetrics.stability,
+                        value: widget.projectMetrics.stability.value,
                       ),
                     ),
                   ),
@@ -109,7 +110,7 @@ class _ProjectTileState extends State<ProjectTile>
                       child: LoadingPlaceholder(),
                     ),
                     builder: (_) => CoverageCirclePercentage(
-                      value: widget.projectMetrics.coverage,
+                      value: widget.projectMetrics.coverage.value,
                     ),
                   ),
                 ],

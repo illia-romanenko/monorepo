@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
 
 /// Represents the build results metric entity.
 @immutable
-class BuildResultsMetric {
+class BuildResultMetric {
   final List<BuildResult> buildResults;
 
-  /// Creates the [BuildResultsMetric].
+  /// Creates the [BuildResultMetric].
   ///
   /// [buildResults] represents the results of several builds.
-  const BuildResultsMetric({this.buildResults = const []});
+  const BuildResultMetric({this.buildResults = const []});
 }
 
 /// Represents the CI build [result] on specified [date].
@@ -19,7 +19,7 @@ class BuildResultsMetric {
 class BuildResult {
   final DateTime date;
   final Duration duration;
-  final Result result;
+  final BuildStatus result;
   final String url;
 
   const BuildResult({

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:metrics/features/dashboard/domain/entities/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
 import 'package:metrics/features/dashboard/presentation/model/bar_data.dart';
 
 /// Represents the data of the bar to display in [BarGraph].
@@ -13,7 +13,7 @@ import 'package:metrics/features/dashboard/presentation/model/bar_data.dart';
 class BuildResultBarData implements BarData {
   @override
   final int value;
-  final Result result;
+  final BuildStatus result;
   final String url;
 
   const BuildResultBarData({

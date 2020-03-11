@@ -1,27 +1,28 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_number_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_result_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/performance_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/collections/date_time_set.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_result_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/performance_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/project_metrics.dart';
 import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_poject_updates.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
-import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics_data.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// The store for the project metrics.
 ///
-/// Stores the [Project]s and its [BuildMetrics].
+/// Stores the [Project]s and their [ProjectMetrics].
 class ProjectMetricsStore {
   final ReceiveProjectUpdates _receiveProjectsUpdates;
   final ReceiveBuildMetricsUpdates _receiveBuildMetricsUpdates;
   final Map<String, StreamSubscription> _buildMetricsSubscriptions = {};
-  final BehaviorSubject<Map<String, ProjectMetrics>> _projectsMetricsSubject =
-      BehaviorSubject();
+  final BehaviorSubject<Map<String, ProjectMetricsData>>
+      _projectsMetricsSubject = BehaviorSubject();
 
   StreamSubscription _projectsSubscription;
 
@@ -37,7 +38,7 @@ class ProjectMetricsStore {
           'The use cases should not be null',
         );
 
-  Stream<List<ProjectMetrics>> get projectsMetrics =>
+  Stream<List<ProjectMetricsData>> get projectsMetrics =>
       _projectsMetricsSubject.map((metricsMap) => metricsMap.values.toList());
 
   /// Subscribes to projects and its metrics.
@@ -70,8 +71,8 @@ class ProjectMetricsStore {
     for (final project in newProjects) {
       final projectId = project.id;
 
-      ProjectMetrics projectMetrics =
-          projectsMetrics[projectId] ?? const ProjectMetrics();
+      ProjectMetricsData projectMetrics =
+          projectsMetrics[projectId] ?? const ProjectMetricsData();
 
       if (projectMetrics.projectName != project.name) {
         projectMetrics = projectMetrics.copyWith(
@@ -104,8 +105,8 @@ class ProjectMetricsStore {
     _buildMetricsSubscriptions[projectId] = metricsSubscription;
   }
 
-  /// Create project metrics form [BuildMetrics].
-  void _createBuildMetrics(BuildMetrics buildMetrics, String projectId) {
+  /// Create project metrics form [ProjectMetrics].
+  void _createBuildMetrics(ProjectMetrics buildMetrics, String projectId) {
     final projectsMetrics = _projectsMetricsSubject.value;
 
     final projectMetrics = projectsMetrics[projectId];
@@ -130,7 +131,7 @@ class ProjectMetricsStore {
       buildNumberMetrics: buildNumberMetrics,
       buildResultMetrics: buildResultMetrics,
       numberOfBuilds: numberOfBuilds,
-      averageBuildDuration: averageBuildDuration,
+      averageBuildDurationInMinutes: averageBuildDuration,
       coverage: buildMetrics.coverage,
       stability: buildMetrics.stability,
     );
@@ -140,7 +141,7 @@ class ProjectMetricsStore {
 
   /// Creates the project build number metrics from [BuildNumberMetric].
   List<Point<int>> _getBuildNumberMetrics(BuildNumberMetric metric) {
-    final buildNumberMetrics = metric?.buildsPerDate ?? [];
+    final buildNumberMetrics = metric?.buildsOnDateSet ?? DateTimeSet();
 
     if (buildNumberMetrics.isEmpty) {
       return [];
@@ -158,7 +159,7 @@ class ProjectMetricsStore {
 
   /// Creates the project performance metrics from [PerformanceMetric].
   List<Point<int>> _getPerformanceMetrics(PerformanceMetric metric) {
-    final performanceMetrics = metric?.buildsPerformance ?? [];
+    final performanceMetrics = metric?.buildsPerformance ?? DateTimeSet();
 
     if (performanceMetrics.isEmpty) {
       return [];
@@ -172,8 +173,8 @@ class ProjectMetricsStore {
     }).toList();
   }
 
-  /// Creates the project build result metrics from [BuildResultsMetric].
-  List<BuildResultBarData> _getBuildResultMetrics(BuildResultsMetric metrics) {
+  /// Creates the project build result metrics from [BuildResultMetric].
+  List<BuildResultBarData> _getBuildResultMetrics(BuildResultMetric metrics) {
     final buildResults = metrics?.buildResults ?? [];
 
     if (buildResults.isEmpty) {

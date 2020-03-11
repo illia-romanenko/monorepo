@@ -1,15 +1,18 @@
 import 'dart:async';
 
-import 'package:metrics/features/dashboard/domain/entities/build_metrics.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_number_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/build_result_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/performance_metric.dart';
-import 'package:metrics/features/dashboard/domain/entities/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/collections/date_time_set.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_result_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/performance_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/project_metrics.dart';
 import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_build_metrics_updates.dart';
 import 'package:metrics/features/dashboard/domain/usecases/receive_poject_updates.dart';
-import 'package:metrics/features/dashboard/presentation/model/project_metrics.dart';
+import 'package:metrics/features/dashboard/presentation/model/project_metrics_data.dart';
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
+import 'package:metrics/util/date.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:test/test.dart';
 
@@ -22,9 +25,9 @@ void main() {
   final ReceiveProjectUpdates receiveProjectUpdates =
       ReceiveProjectUpdatesTestbed();
 
-  BuildMetrics expectedBuildMetrics;
+  ProjectMetrics expectedBuildMetrics;
   ProjectMetricsStore projectMetricsStore;
-  Stream<List<ProjectMetrics>> projectMetricsStream;
+  Stream<List<ProjectMetricsData>> projectMetricsStream;
 
   setUpAll(() async {
     projectMetricsStore = ProjectMetricsStore(
@@ -89,8 +92,6 @@ void main() {
       final metrics = await projectMetricsStore.projectsMetrics.first;
       final projectMetrics = metrics.first;
 
-      print(projectMetrics);
-
       expect(projectMetrics.buildResultMetrics, isNull);
       expect(projectMetrics.performanceMetrics, isNull);
       expect(projectMetrics.buildNumberMetrics, isNull);
@@ -108,7 +109,7 @@ void main() {
 
   test("Loads the build number metrics", () async {
     final expectedBuildNumberMetrics = expectedBuildMetrics.buildNumberMetrics;
-    final buildsPerFirstDate = expectedBuildNumberMetrics.buildsPerDate.first;
+    final buildsPerFirstDate = expectedBuildNumberMetrics.buildsOnDateSet.first;
 
     final actualProjectMetrics = await projectMetricsStream.first;
     final firstProjectMetrics = actualProjectMetrics.first;
@@ -121,7 +122,7 @@ void main() {
 
     expect(
       firstProjectMetrics.buildNumberMetrics.length,
-      expectedBuildNumberMetrics.buildsPerDate.length,
+      expectedBuildNumberMetrics.buildsOnDateSet.length,
     );
 
     final firstBuildNumberMetric = buildNumberMetrics.first;
@@ -149,7 +150,7 @@ void main() {
     );
 
     expect(
-      firstProjectMetrics.averageBuildDuration,
+      firstProjectMetrics.averageBuildDurationInMinutes,
       expectedPerformanceMetrics.averageBuildDuration.inMinutes,
     );
 
@@ -214,7 +215,7 @@ void main() {
       await metricsStore.subscribeToProjects();
 
       List<Project> expectedProjects = await receiveProjectUpdates().first;
-      List<ProjectMetrics> actualProjects =
+      List<ProjectMetricsData> actualProjects =
           await metricsStore.projectsMetrics.first;
 
       expect(actualProjects.length, expectedProjects.length);
@@ -272,27 +273,27 @@ class ReceiveProjectUpdatesTestbed implements ReceiveProjectUpdates {
 }
 
 class ReceiveBuildMetricsUpdatesTestbed implements ReceiveBuildMetricsUpdates {
-  static final _buildMetrics = BuildMetrics(
+  static final _buildMetrics = ProjectMetrics(
     projectId: 'id',
     performanceMetrics: PerformanceMetric(
-      buildsPerformance: [
+      buildsPerformance: DateTimeSet.from([
         BuildPerformance(
           date: DateTime.now(),
           duration: const Duration(minutes: 14),
         )
-      ],
+      ]),
       averageBuildDuration: const Duration(minutes: 3),
     ),
     buildNumberMetrics: BuildNumberMetric(
-      buildsPerDate: [
-        BuildsPerDate(
-          date: DateTime.now(),
+      buildsOnDateSet: DateTimeSet.from([
+        BuildsOnDate(
+          date: DateTime.now().date,
           numberOfBuilds: 1,
         ),
-      ],
+      ]),
       totalNumberOfBuilds: 1,
     ),
-    buildResultMetrics: BuildResultsMetric(
+    buildResultMetrics: BuildResultMetric(
       buildResults: [
         BuildResult(
           date: DateTime.now(),
@@ -301,14 +302,14 @@ class ReceiveBuildMetricsUpdatesTestbed implements ReceiveBuildMetricsUpdates {
         ),
       ],
     ),
-    coverage: 0.2,
-    stability: 0.5,
+    coverage: const Percent(0.2),
+    stability: const Percent(0.5),
   );
 
   const ReceiveBuildMetricsUpdatesTestbed();
 
   @override
-  Stream<BuildMetrics> call([ProjectIdParam params]) {
+  Stream<ProjectMetrics> call([ProjectIdParam params]) {
     return Stream.value(_buildMetrics);
   }
 }
@@ -318,8 +319,8 @@ class ReceiveEmptyBuildMetricsUpdatesTestbed
   const ReceiveEmptyBuildMetricsUpdatesTestbed();
 
   @override
-  Stream<BuildMetrics> call(ProjectIdParam params) {
-    return Stream.value(const BuildMetrics());
+  Stream<ProjectMetrics> call(ProjectIdParam params) {
+    return Stream.value(const ProjectMetrics());
   }
 }
 
@@ -328,7 +329,7 @@ class ReceiveNullBuildMetricsUpdatesTestbed
   const ReceiveNullBuildMetricsUpdatesTestbed();
 
   @override
-  Stream<BuildMetrics> call(ProjectIdParam params) {
+  Stream<ProjectMetrics> call(ProjectIdParam params) {
     return Stream.value(null);
   }
 }
