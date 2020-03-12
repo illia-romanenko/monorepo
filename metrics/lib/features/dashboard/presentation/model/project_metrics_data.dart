@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 

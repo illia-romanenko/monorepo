@@ -10,23 +10,23 @@ import 'package:metrics/features/dashboard/presentation/widgets/loading_placehol
 import 'package:metrics/features/dashboard/presentation/widgets/sparkline_graph.dart';
 
 /// Displays the project name and it's metrics.
-class ProjectTile extends StatefulWidget {
+class ProjectMetricsTile extends StatefulWidget {
   final ProjectMetricsData projectMetrics;
 
-  /// Creates the [ProjectTile].
+  /// Creates the [ProjectMetricsTile].
   ///
   /// [projectMetrics] is the metrics of the project to be displayed.
-  const ProjectTile({
+  const ProjectMetricsTile({
     Key key,
     @required this.projectMetrics,
   })  : assert(projectMetrics != null),
         super(key: key);
 
   @override
-  _ProjectTileState createState() => _ProjectTileState();
+  _ProjectMetricsTileState createState() => _ProjectMetricsTileState();
 }
 
-class _ProjectTileState extends State<ProjectTile>
+class _ProjectMetricsTileState extends State<ProjectMetricsTile>
     with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {

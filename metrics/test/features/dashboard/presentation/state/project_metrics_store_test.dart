@@ -4,7 +4,10 @@ import 'package:metrics/features/dashboard/domain/entities/collections/date_time
 import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 import 'package:metrics/features/dashboard/domain/entities/core/project.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_performance.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_result.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/build_result_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/builds_on_date.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/performance_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/project_metrics.dart';
 import 'package:metrics/features/dashboard/domain/usecases/parameters/project_id_param.dart';

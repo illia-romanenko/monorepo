@@ -1,10 +1,9 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build_status.dart';
 import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 
-enum BuildStatus { successful, cancelled, failed }
-
-/// Represents the build entity.
+/// Represents a single finished build from CI.
 @immutable
 class Build extends Equatable {
   final String id;

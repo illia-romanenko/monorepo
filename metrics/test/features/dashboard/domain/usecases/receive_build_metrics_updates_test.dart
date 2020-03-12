@@ -76,7 +76,10 @@ void main() {
 }
 
 class MetricsRepositoryStubImpl implements MetricsRepository {
-  static const Project _project = Project();
+  static const Project _project = Project(
+    name: 'projectName',
+    id: 'projectId',
+  );
   static final List<Build> builds = [
     Build(
       id: '1',

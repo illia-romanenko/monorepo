@@ -4,7 +4,7 @@ import 'package:metrics/features/dashboard/presentation/model/project_metrics_da
 import 'package:metrics/features/dashboard/presentation/state/project_metrics_store.dart';
 import 'package:metrics/features/dashboard/presentation/strings/dashboard_strings.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/loading_placeholder.dart';
-import 'package:metrics/features/dashboard/presentation/widgets/project_tile.dart';
+import 'package:metrics/features/dashboard/presentation/widgets/project_metrics_tile.dart';
 import 'package:states_rebuilder/states_rebuilder.dart';
 
 /// Shows the available projects and metrics for these projects.
@@ -35,7 +35,7 @@ class DashboardPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final project = projects[index];
 
-                      return ProjectTile(projectMetrics: project);
+                      return ProjectMetricsTile(projectMetrics: project);
                     },
                   );
                 },

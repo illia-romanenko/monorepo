@@ -1,4 +1,4 @@
-import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/builds_on_date.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -8,7 +8,7 @@ import 'package:metrics/features/dashboard/domain/repositories/metrics_repositor
 class ReceiveProjectUpdates implements UseCase<Stream<List<Project>>, void> {
   final MetricsRepository _repository;
 
-  /// Creates the [ReceiveProjectUpdates] use case with the given [_repository].
+  /// Creates the [ReceiveProjectUpdates] use case with the given [MetricsRepository].
   const ReceiveProjectUpdates(this._repository);
 
   @override

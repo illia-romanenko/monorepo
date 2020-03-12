@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 /// Represents the project entity.
 @immutable
@@ -8,7 +8,8 @@ class Project {
 
   /// Creates the [Project] with [name] and [id].
   const Project({
-    this.id,
-    this.name,
-  });
+    @required this.id,
+    @required this.name,
+  })  : assert(id != null),
+        assert(name != null);
 }

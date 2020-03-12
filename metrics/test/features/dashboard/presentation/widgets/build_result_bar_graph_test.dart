@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/build_results_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/metrics_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
-import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build_status.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/build_result_bar_graph.dart';
@@ -158,6 +158,24 @@ void main() {
       expect(barGraphData.length, numberOfBars);
 
       expect(barGraphData, equals(trimmedData));
+    },
+  );
+
+  testWidgets(
+    "Shows the placeholder bar if the build result status is null",
+    (WidgetTester tester) async {
+      const testData = [
+        BuildResultBarData(
+          value: 20,
+        )
+      ];
+
+      await tester.pumpWidget(BuildResultBarGraphTestbed(
+        data: testData,
+        numberOfBars: testData.length,
+      ));
+
+      expect(find.byType(PlaceholderBar), findsOneWidget);
     },
   );
 }

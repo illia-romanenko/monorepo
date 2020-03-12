@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/build_result_metric.dart';

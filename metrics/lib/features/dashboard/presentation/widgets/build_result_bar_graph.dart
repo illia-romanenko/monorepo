@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/model/build_results_theme_data.dart';
 import 'package:metrics/features/common/presentation/metrics_theme/widgets/metrics_theme.dart';
-import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build_status.dart';
 import 'package:metrics/features/dashboard/presentation/model/build_result_bar_data.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/bar_graph.dart';
 import 'package:metrics/features/dashboard/presentation/widgets/colored_bar.dart';
@@ -95,6 +95,12 @@ class BuildResultBarGraph extends StatelessWidget {
                     graphPadding: EdgeInsets.zero,
                     onBarTap: _onBarTap,
                     barBuilder: (BuildResultBarData data) {
+                      if (data.result == null) {
+                        return const PlaceholderBar(
+                          width: _barWidth,
+                        );
+                      }
+
                       return Align(
                         alignment: Alignment.center,
                         child: ColoredBar(

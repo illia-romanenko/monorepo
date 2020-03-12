@@ -1,9 +1,13 @@
 import 'package:metrics/core/usecases/usecase.dart';
 import 'package:metrics/features/dashboard/domain/entities/collections/date_time_set.dart';
 import 'package:metrics/features/dashboard/domain/entities/core/build.dart';
+import 'package:metrics/features/dashboard/domain/entities/core/build_status.dart';
 import 'package:metrics/features/dashboard/domain/entities/core/percent.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/build_number_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_performance.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/build_result.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/build_result_metric.dart';
+import 'package:metrics/features/dashboard/domain/entities/metrics/builds_on_date.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/performance_metric.dart';
 import 'package:metrics/features/dashboard/domain/entities/metrics/project_metrics.dart';
 import 'package:metrics/features/dashboard/domain/repositories/metrics_repository.dart';
@@ -21,7 +25,7 @@ class ReceiveBuildMetricsUpdates
 
   final MetricsRepository _repository;
 
-  /// Creates the [ReceiveBuildMetricsUpdates] use case with given [_repository].
+  /// Creates the [ReceiveBuildMetricsUpdates] use case with given [MetricsRepository].
   ReceiveBuildMetricsUpdates(this._repository);
 
   @override
