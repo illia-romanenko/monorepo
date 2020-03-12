@@ -22,7 +22,7 @@ void main() {
       test(
         'Loads the projects and shows the project tiles',
         () async {
-          await driver.waitFor(find.byType('ProjectTile'));
+          await driver.waitFor(find.byType('ProjectMetricsTile'));
         },
       );
 
